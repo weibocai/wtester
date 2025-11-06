@@ -17,7 +17,7 @@ type tempPR struct {
 }
 
 // Request http 请求型任务
-type Request struct {
+type HttpRequest struct {
 	Name         string            `yaml:"name"`
 	Description  string            `yaml:"description"`
 	TempParams   []yaml.Node       `yaml:"params,omitempty"`
@@ -32,13 +32,24 @@ type Request struct {
 	paramLength int                    `yaml:"-"`
 }
 
-func (r *Request) GetParamsLength() int {
+func (r *HttpRequest) GetClientPoolKey() string {
+	return r.Url
+}
+
+func (r *HttpRequest) AddClientPool() error {
+	if _, err := request.RegisterHttpClient(r.Url); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *HttpRequest) GetParamsLength() int {
 	return r.paramLength
 }
 
 // GetParam 获取task指定轮次的参数
-func (r *Request) getParam(index int) (map[string]interface{}, error) {
-	params := make(map[string]interface{})
+func (r *HttpRequest) getParam(index int) (map[string]any, error) {
+	params := make(map[string]any)
 	for _, param := range r.params {
 		p, err := (*param).GetParam(index)
 		if err != nil {
@@ -52,11 +63,11 @@ func (r *Request) getParam(index int) (map[string]interface{}, error) {
 	return params, nil
 }
 
-func (r *Request) GetDescription() string {
+func (r *HttpRequest) GetDescription() string {
 	return r.Description
 }
 
-func (r *Request) Doc() string {
+func (r *HttpRequest) Doc() string {
 	var doc strings.Builder
 	doc.WriteString(fmt.Sprintf("\n----------- 任务%s（http请求型任务）----------- \n", r.GetName()))
 	doc.WriteString(fmt.Sprintf("%s\n", r.GetDescription()))
@@ -73,14 +84,14 @@ func (r *Request) Doc() string {
 	return doc.String()
 }
 
-func (r *Request) GetWeight() int {
+func (r *HttpRequest) GetWeight() int {
 	if r.Weight > 0 {
 		return r.Weight
 	}
 	return 1
 }
 
-func (r *Request) Init() error {
+func (r *HttpRequest) Init() error {
 	length := 1
 	isInit := false
 	for _, param := range r.params {
@@ -114,11 +125,11 @@ func (r *Request) Init() error {
 	}
 	return nil
 }
-func (r *Request) GetName() string {
+func (r *HttpRequest) GetName() string {
 	return r.Name
 }
 
-func (r *Request) SetParam() error {
+func (r *HttpRequest) SetParam() error {
 	if len(r.TempParams) == 0 {
 		return nil
 	}
@@ -156,7 +167,7 @@ func (r *Request) SetParam() error {
 	return nil
 }
 
-func (r *Request) SetResponse() error {
+func (r *HttpRequest) SetResponse() error {
 	if r.TempResponse.Content == nil {
 		return nil
 	}
@@ -189,7 +200,7 @@ func (r *Request) SetResponse() error {
 	return nil
 }
 
-func (r *Request) compare(index int, res string) bool {
+func (r *HttpRequest) compare(index int, res string) bool {
 	if r.response == nil {
 		return true
 	}
@@ -201,13 +212,13 @@ func (r *Request) compare(index int, res string) bool {
 	}
 }
 
-func (r *Request) Runner(index int) (bool, int64, error) {
+func (r *HttpRequest) Runner(index int) (bool, int64, error) {
 	now := time.Now()
 	isEqual := false
 	if para, err := r.getParam(index); err != nil {
 		return false, 0, err
 	} else {
-		if res, err := request.Requests(r.Method, r.Url, para); err != nil {
+		if res, err := request.HttpRequest(r.Method, r.Url, para); err != nil {
 			return false, 0, err
 		} else {
 			isEqual = r.compare(index, res)

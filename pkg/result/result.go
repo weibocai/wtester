@@ -47,6 +47,7 @@ func (r *Result) ToError() *Error {
 	}
 }
 
+// 统计结果
 type Statistic struct {
 	ID           uint      `gorm:"primaryKey;<-:false"`
 	Stage        string    `json:"stage"`              // 阶段名称
@@ -79,6 +80,7 @@ func (s *Statistic) Reset() {
 func InitResult() {
 	switch config.WTesterConfig.Result.StorageType {
 	case constants.MYSQLStorageType:
+		// mysql 保存到mysql数据库
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			config.WTesterConfig.Result.DbConfig.Username, config.WTesterConfig.Result.DbConfig.Password, config.WTesterConfig.Result.DbConfig.Host, config.WTesterConfig.Result.DbConfig.Port, config.WTesterConfig.Result.DbConfig.Database)
 		var err error
@@ -124,6 +126,12 @@ func InitResult() {
 		}
 		// 结果
 		if f, err := os.Create(filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "result.txt")); err != nil {
+			panic(err)
+		} else {
+			_ = f.Close()
+		}
+		// 异常结果
+		if f, err := os.Create(filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "error.txt")); err != nil {
 			panic(err)
 		} else {
 			_ = f.Close()

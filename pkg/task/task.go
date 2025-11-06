@@ -6,6 +6,8 @@ type Task interface {
 	Init() error                           // 初始化，并校验参数
 	Doc() string                           // 任务说明
 	Runner(index int) (bool, int64, error) // 任务执行器
+	AddClientPool() error                  // 注册请求客户端
+	GetClientPoolKey() string              // 获取请求客户端的key
 	SetParam() error                       // 设置参数
 	SetResponse() error                    // 设置返回信息
 	GetName() string
@@ -36,5 +38,6 @@ func GetTask(name string) (Task, error) {
 }
 
 func init() {
-	RegisterTask("request", func() Task { return &Request{} })
+	RegisterTask("http", func() Task { return &HttpRequest{} })
+	RegisterTask("grpc", func() Task { return &GrpcRequest{} })
 }

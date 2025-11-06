@@ -161,12 +161,16 @@ func (s *Stage) Init() error {
 
 	taskName := make(map[string]bool)
 	for i := range s.tasks {
-		if _, ok := taskName[(*s.tasks[i]).GetName()]; ok {
-			return fmt.Errorf("stage:%s task already exists", (*s.tasks[i]).GetName())
+		name := (*s.tasks[i]).GetName()
+		if _, ok := taskName[name]; ok {
+			return fmt.Errorf("stage:%s task already exists", name)
 		}
-		taskName[(*s.tasks[i]).GetName()] = true
+		taskName[name] = true
 		if err = (*s.tasks[i]).Init(); err != nil {
-			return err
+			return fmt.Errorf("%s 初始化失败：%s", name, err)
+		}
+		if err = (*s.tasks[i]).AddClientPool(); err != nil {
+			return fmt.Errorf("%s 初始化失败：%s", name, err)
 		}
 	}
 	// 设置任务的执行权重
@@ -209,26 +213,32 @@ func (s *Stage) SetTasks() error {
 	return nil
 }
 
+// 获取采样时间
 func (s *Stage) GetSampling() time.Duration {
 	return s.sampling
 }
 
+// 获取执行时间
 func (s *Stage) GetDuration() int {
 	return s.duration
 }
 
+// 获取本阶段的任务
 func (s *Stage) GetTasks() []*task.Task {
 	return s.tasks
 }
 
+// 获取任务权重
 func (s *Stage) GetTaskWeight() map[string]int {
 	return s.taskWeight
 }
 
+// 获取任务权重
 func (s *Stage) GetTotalWeight() int {
 	return s.totalWeight
 }
 
+// 获取执行顺序
 func (s *Stage) GetExecutionOrderType() ExecutionOrderType {
 	return s.executionOrderType
 }

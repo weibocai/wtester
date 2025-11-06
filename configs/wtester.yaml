@@ -1,0 +1,13 @@
+- name: f_stage
+  number_concurrent: 100
+  sampling: 1
+  ramp_up: 10
+  duration: 20s
+  execution_mode: order
+  tasks:
+  - type: grpc
+    name: grpc_task
+    url: 127.0.0.1:50051
+    service: Greeter
+    method: SayHello
+    params:
