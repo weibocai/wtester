@@ -53,7 +53,6 @@ func TestHttpClientPool(t *testing.T) {
 				if err != nil {
 					t.Errorf("请求失败：%s", err)
 				}
-				fmt.Println(resp)
 				_ = resp.Body.Close()
 			}
 		})

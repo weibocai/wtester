@@ -81,7 +81,7 @@ func makeGet(url netUrl.URL, params map[string]any) (string, error) {
 	return url.String(), nil
 }
 
-// Http http 请求工具
+// HttpRequest http 请求工具
 func HttpRequest(method string, url string, params map[string]any) (string, error) {
 	Url, err := netUrl.Parse(url)
 	if err != nil {

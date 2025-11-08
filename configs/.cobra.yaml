@@ -1,0 +1,4 @@
+log:
+  path: logs
+result:
+  storageType: file

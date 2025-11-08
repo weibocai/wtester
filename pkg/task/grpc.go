@@ -1,20 +1,14 @@
 package task
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/wtester/pkg/request"
 )
 
 type GrpcRequest struct {
-	HttpRequest
-	Service string `yaml:"service"`
-	Method  string `yaml:"method"`
-}
-
-func (r *GrpcRequest) GetClientPoolKey() string {
-	return fmt.Sprintf("%s/%s/%s", r.Url, r.Service, r.Name)
+	HttpRequest `yaml:",inline"`
+	Service     string `yaml:"service"`
 }
 
 func (r *GrpcRequest) AddClientPool() error {

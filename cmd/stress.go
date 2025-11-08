@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wtester/pkg/logger"
+	"github.com/wtester/pkg/request"
 	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/runner"
 	"github.com/wtester/pkg/stage"
@@ -38,6 +39,8 @@ func closeStress() {
 			_ = sqlDB.Close()
 		}
 	}
+	request.CloseGrpcClient()
+	request.CloseHtpClient()
 }
 
 func execute() error {

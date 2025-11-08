@@ -32,10 +32,6 @@ type HttpRequest struct {
 	paramLength int                    `yaml:"-"`
 }
 
-func (r *HttpRequest) GetClientPoolKey() string {
-	return r.Url
-}
-
 func (r *HttpRequest) AddClientPool() error {
 	if _, err := request.RegisterHttpClient(r.Url); err != nil {
 		return err

@@ -7,7 +7,6 @@ type Task interface {
 	Doc() string                           // 任务说明
 	Runner(index int) (bool, int64, error) // 任务执行器
 	AddClientPool() error                  // 注册请求客户端
-	GetClientPoolKey() string              // 获取请求客户端的key
 	SetParam() error                       // 设置参数
 	SetResponse() error                    // 设置返回信息
 	GetName() string
