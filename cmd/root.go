@@ -51,7 +51,9 @@ func initConfig() {
 		panic(fmt.Sprintf("Error parsing config file: %v", err))
 	}
 
+	// 加载日志配置
 	logger.InitLogger()
+	// 加载结果保存配置
 	result.InitResult()
-	logger.Logger.Info("初始化完成")
+	logger.Logger.Info("系统初始化完成")
 }

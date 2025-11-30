@@ -15,6 +15,7 @@ import (
 	"github.com/wtester/pkg/task"
 )
 
+// 定义时间执行器
 type SingleDurationRunner struct {
 	Stage   *stage.Stage `json:"stage"`
 	ccCount int          // 当前并发个数

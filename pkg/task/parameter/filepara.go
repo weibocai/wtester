@@ -54,6 +54,7 @@ func FileParam2RealParam(para ...string) (Parameter, error) {
 	return p, err
 }
 
+// FileParam2RealResponse 文件型参数，不直接使用，而是转换成对应格式的参数类型，只支持json格式的文件：支持map、[]map[string]string
 func FileParam2RealResponse(para ...string) (Response, error) {
 	_, r, err := fileParam2RealParam(para...)
 	return r, err

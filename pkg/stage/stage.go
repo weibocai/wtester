@@ -213,32 +213,32 @@ func (s *Stage) SetTasks() error {
 	return nil
 }
 
-// 获取采样时间
+// GetSampling 获取采样时间
 func (s *Stage) GetSampling() time.Duration {
 	return s.sampling
 }
 
-// 获取执行时间
+// GetDuration 获取执行时间
 func (s *Stage) GetDuration() int {
 	return s.duration
 }
 
-// 获取本阶段的任务
+// GetTasks 获取本阶段的任务
 func (s *Stage) GetTasks() []*task.Task {
 	return s.tasks
 }
 
-// 获取任务权重
+// GetTaskWeight 获取任务权重
 func (s *Stage) GetTaskWeight() map[string]int {
 	return s.taskWeight
 }
 
-// 获取任务权重
+// GetTotalWeight 获取任务权重
 func (s *Stage) GetTotalWeight() int {
 	return s.totalWeight
 }
 
-// 获取执行顺序
+// ExecutionOrderType 获取执行顺序
 func (s *Stage) GetExecutionOrderType() ExecutionOrderType {
 	return s.executionOrderType
 }

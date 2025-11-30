@@ -10,6 +10,7 @@ type Parameter interface {
 	GetParam(index int) (map[string]interface{}, error) // 通过索引，获取指定的参数
 }
 
+// 参数定义工厂
 type ParamFactory func(para ...string) (Parameter, error)
 
 var paramFactories = make(map[string]ParamFactory)

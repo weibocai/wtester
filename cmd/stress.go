@@ -44,6 +44,7 @@ func closeStress() {
 }
 
 func execute() error {
+	logger.Logger.Info("开始加载测试方案")
 	if testPlan == "" {
 		pwd, _ := os.Getwd()
 		testPlan = filepath.Join(pwd, "configs", "wtester.yaml")
@@ -64,6 +65,7 @@ func execute() error {
 		}
 	}
 	runner.Signal(stageList)
+	logger.Logger.Info("本次测试结束")
 	closeStress()
 	return nil
 }

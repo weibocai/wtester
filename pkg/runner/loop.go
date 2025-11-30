@@ -10,6 +10,7 @@ import (
 	"github.com/wtester/pkg/stage"
 )
 
+// 定义轮次配置执行器
 type SingleLoopRunner struct {
 	Stage    *stage.Stage `json:"stage"`
 	DoneChan chan struct{}
@@ -19,6 +20,7 @@ type SingleLoopRunner struct {
 	once     sync.Once // 添加 once
 }
 
+// 更新执行轮次
 func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
 	sr.lock.Lock()
 	defer sr.lock.Unlock()
@@ -37,6 +39,7 @@ func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
 	return true
 }
 
+// Done 测试结束执行的操作
 func (sr *SingleLoopRunner) Done(cf context.CancelFunc, wg *sync.WaitGroup) {
 	defer wg.Done()
 	<-sr.DoneChan // 关闭通道后，这里会立即返回
@@ -88,6 +91,7 @@ func (sr *SingleLoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup,
 	tasks := sr.Stage.GetTasks()
 	lTask := len(tasks)
 	for {
+		// 等待结束信号
 		if !sr.updateLoop(ctx) {
 			return
 		}
