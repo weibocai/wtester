@@ -26,7 +26,7 @@ func writeResult(sr Runner, t task.Task, pIndex int, rc chan *result.Result) {
 	rc <- res
 }
 
-func signalRunTicker(sr Runner, ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan *result.Result) {
 	defer wg.Done()
 	// 启动计时器
 	ticker := time.NewTicker(1 * time.Second)
@@ -34,7 +34,7 @@ func signalRunTicker(sr Runner, ctx context.Context, wg *sync.WaitGroup, rc chan
 	sg := sr.GetStage()
 	// 任务并发器
 	var group sync.WaitGroup
-
+	group.Wait()
 	tickerTask := func() bool {
 		rp := sg.RampUp
 		// 本次需要启动的并发的个数
@@ -55,20 +55,24 @@ func signalRunTicker(sr Runner, ctx context.Context, wg *sync.WaitGroup, rc chan
 			default:
 				go sr.RunnerOrder(ctx, &group, rc)
 			}
-			sr.PlusCcCount()
 		}
+		sr.PlusCcCount(lrp)
 		logger.Logger.Info(fmt.Sprintf("总并发数：%d, 当前启动并发数：%d", sg.NumberOfConcurrent, sr.GetCcCount()))
 		return true
 	}
 	// 任务启动：在计时器启动之前，启动一次任务
 	if tickerTask() {
-		for range ticker.C {
-			if !tickerTask() {
-				break
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if !tickerTask() {
+					return
+				}
 			}
 		}
 	}
-	group.Wait()
 }
 
 func signalRunner(sr Runner) error {
@@ -98,16 +102,18 @@ func signalRunner(sr Runner) error {
 	}()
 	// 定时关闭
 	wg.Add(1)
-	go sr.Done(cancel, &wg)
+	go sr.Daemon(cancel, &wg)
 	wg.Add(1)
-	go signalRunTicker(sr, ctx, &wg, results)
-	wg.Wait()
+	go signalRunTicker(ctx, sr, &wg, results)
 
+	wg.Wait()
+	logger.Logger.Info("我结束了")
 	return nil
 }
 
 // Signal 单节点执行器
 func Signal(stages []*stage.Stage) {
+	// stage 依次执行测试
 	for _, st := range stages {
 		var sr Runner
 		if st.GetExecutionOrderType() == stage.ExecutionOrderTypeLoop {

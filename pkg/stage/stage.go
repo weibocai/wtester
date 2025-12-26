@@ -84,7 +84,7 @@ func (s *Stage) setTaskWeight() (bool, error) {
 	for i := range s.tasks {
 		w := (*s.tasks[i]).GetWeight()
 		if w <= 0 {
-			return false, fmt.Errorf("Stage %s - Task %s 权重参数配置异常：%d", s.Name, (*s.tasks[i]).GetName(), w)
+			return false, fmt.Errorf("stage %s - Task %s 权重参数配置异常：%d", s.Name, (*s.tasks[i]).GetName(), w)
 		}
 		if lWeight < 0 {
 			lWeight = w
@@ -174,13 +174,13 @@ func (s *Stage) Init() error {
 		}
 	}
 	// 设置任务的执行权重
-	if isDiff, err := s.setTaskWeight(); err != nil {
-		return err
-	} else {
+	if isDiff, err := s.setTaskWeight(); err == nil {
 		// 如果是顺序执行，且权重有效，将阶段设置为权重执行模式
 		if isDiff && s.ExecutionMode == ExecutionModeOrder {
 			s.ExecutionMode = ExecutionModeWeight
 		}
+	} else {
+		return err
 	}
 	logger.Logger.Info(s.Doc())
 	return nil
@@ -194,9 +194,7 @@ func (s *Stage) SetTasks() error {
 		if err := s.TempTasks[i].Decode(&tt); err != nil {
 			return fmt.Errorf("任务解析失败：%d, %v", i, err)
 		}
-		if t, err := task.GetTask(tt.Type); err != nil {
-			return fmt.Errorf("任务解析失败：%d, %v", i, err)
-		} else {
+		if t, err := task.GetTask(tt.Type); err == nil {
 			if err = tt.Task.Decode(t); err != nil {
 				return fmt.Errorf("任务解析失败：%d, %v", i, err)
 			}
@@ -207,6 +205,8 @@ func (s *Stage) SetTasks() error {
 				return fmt.Errorf("任务解析失败，参数解析失败：%d, %v", i, err)
 			}
 			tasks[i] = &t
+		} else {
+			return fmt.Errorf("任务解析失败：%d, %v", i, err)
 		}
 	}
 	s.tasks = tasks
@@ -238,7 +238,7 @@ func (s *Stage) GetTotalWeight() int {
 	return s.totalWeight
 }
 
-// ExecutionOrderType 获取执行顺序
+// GetExecutionOrderType 获取执行顺序
 func (s *Stage) GetExecutionOrderType() ExecutionOrderType {
 	return s.executionOrderType
 }

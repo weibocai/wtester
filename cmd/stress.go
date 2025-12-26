@@ -39,11 +39,15 @@ func closeStress() {
 			_ = sqlDB.Close()
 		}
 	}
+	request.CloseGrpcReflectionClient()
 	request.CloseGrpcClient()
 	request.CloseHtpClient()
 }
 
 func execute() error {
+	// 加载结果保存配置
+	logger.Logger.Info("初始化结果储存")
+	result.InitResult()
 	logger.Logger.Info("开始加载测试方案")
 	if testPlan == "" {
 		pwd, _ := os.Getwd()

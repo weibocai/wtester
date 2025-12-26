@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -32,24 +31,21 @@ type FileProcessor struct {
 func (fp *FileProcessor) Init() error {
 	var err error
 	// 请求结果
-	rPath := filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "result.txt")
-	fp.resultFIle, err = os.OpenFile(rPath, os.O_WRONLY, 2)
+	fp.resultFIle, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetResultPath(), os.O_WRONLY, 2)
 	if err != nil {
 		return err
 	}
 	fp.resultWriter = bufio.NewWriterSize(fp.resultFIle, config.WTesterConfig.Result.FileConfig.BufSize)
 
 	// 异常结果
-	ePath := filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "error.txt")
-	fp.errorFile, err = os.OpenFile(ePath, os.O_WRONLY, 2)
+	fp.errorFile, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetErrorPath(), os.O_WRONLY, 2)
 	if err != nil {
 		return err
 	}
 	fp.errorWriter = bufio.NewWriterSize(fp.statisticFile, config.WTesterConfig.Result.FileConfig.BufSize)
 
 	// 统计结果
-	sPath := filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "statistic.txt")
-	fp.statisticFile, err = os.OpenFile(sPath, os.O_WRONLY, 2)
+	fp.statisticFile, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetStatisticPath(), os.O_WRONLY, 2)
 	if err != nil {
 		return err
 	}

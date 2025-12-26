@@ -1,0 +1,50 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option go_package = "github.com/wtester/proto";
+
+package proto;
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string a = 1;
+  int32 b = 2;
+  int64 c = 3;
+  uint32 d = 4;
+  uint64 e = 5;
+  sint32 f = 6;
+  sint64 g = 7;
+  fixed32 h = 8;
+  fixed64 i = 9;
+  sfixed32 j = 10;
+  sfixed64 k = 11;
+  float l = 12;
+  double m = 13;
+  bool n = 14;
+  bytes o = 15;
+  
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}

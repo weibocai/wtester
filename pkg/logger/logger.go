@@ -2,6 +2,7 @@ package logger
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/wtester/pkg/config"
@@ -15,6 +16,11 @@ var Logger *zap.Logger // 日志
 
 // InitLogger 初始化全局日志系统
 func InitLogger() {
+	if config.WTesterConfig.Log == nil {
+		pwd, _ := os.Getwd()
+		config.WTesterConfig.Log = &config.LogConfig{Path: filepath.Join(pwd, "logs/info.log")}
+	}
+
 	if err := library.CreateFileIfNotExists(config.WTesterConfig.Log.Path); err != nil {
 		panic(err)
 	}

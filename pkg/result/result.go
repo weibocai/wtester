@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/wtester/pkg/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -24,6 +25,10 @@ type Error struct {
 	Datetime      time.Time `json:"datetime"`       // 统计时间
 }
 
+func (Error) TableName() string {
+	return config.WTesterConfig.Result.DbConfig.GetErrorPath()
+}
+
 // Result 请求结果
 type Result struct {
 	ID            uint      `gorm:"primaryKey;<-:false"`
@@ -37,7 +42,11 @@ type Result struct {
 	Exception     string    `json:"exception"   gorm:"-:all"` // 异常信息
 }
 
-func (r *Result) ToError() *Error {
+func (Result) TableName() string {
+	return config.WTesterConfig.Result.DbConfig.GetResultPath()
+}
+
+func (r Result) ToError() *Error {
 	return &Error{
 		Stage:         r.Stage,
 		Task:          r.Task,
@@ -47,7 +56,7 @@ func (r *Result) ToError() *Error {
 	}
 }
 
-// 统计结果
+// Statistic 统计结果
 type Statistic struct {
 	ID           uint      `gorm:"primaryKey;<-:false"`
 	Stage        string    `json:"stage"`              // 阶段名称
@@ -64,6 +73,10 @@ type Statistic struct {
 	Datetime     time.Time `json:"datetime"`           // 统计时间
 }
 
+func (*Statistic) TableName() string {
+	return config.WTesterConfig.Result.DbConfig.GetStatisticPath()
+}
+
 // Reset 重置统计结果
 func (s *Statistic) Reset() {
 	s.SuccessCount = 0
@@ -78,9 +91,25 @@ func (s *Statistic) Reset() {
 
 // InitResult 初始化结果记录
 func InitResult() {
+	// 如果未声明日志保存方式，默认为写入本地文件；或是只是指定了存储到文件，但是没有具体写文件的路径，这里配置默认的文件路径
+	if config.WTesterConfig.Result == nil || (config.WTesterConfig.Result.StorageType == constants.FileStorageType && config.WTesterConfig.Result.FileConfig == nil) {
+		pwd, _ := os.Getwd()
+		config.WTesterConfig.Result = &config.ResultConfig{
+			StorageType: constants.FileStorageType,
+			FileConfig: &config.FileConfig{
+				Path:    filepath.Join(pwd, constants.ResultFilePath),
+				BufSize: constants.ResultFileBufSize,
+			},
+		}
+	}
+
+	// 日志保存配置初始化
 	switch config.WTesterConfig.Result.StorageType {
-	case constants.MYSQLStorageType:
+	case constants.MysqlStorageType:
 		// mysql 保存到mysql数据库
+		if config.WTesterConfig.Result.DbConfig == nil || config.WTesterConfig.Result.DbConfig.GetPassword() == "" || config.WTesterConfig.Result.DbConfig.GetDatabase() == "" {
+			panic(fmt.Errorf("数据库参数配置异常：password=%s; Database=%s", config.WTesterConfig.Result.DbConfig.GetPassword(), config.WTesterConfig.Result.DbConfig.GetDatabase()))
+		}
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			config.WTesterConfig.Result.DbConfig.Username, config.WTesterConfig.Result.DbConfig.Password, config.WTesterConfig.Result.DbConfig.Host, config.WTesterConfig.Result.DbConfig.Port, config.WTesterConfig.Result.DbConfig.Database)
 		var err error
@@ -101,46 +130,36 @@ func InitResult() {
 		if err = GormDB.AutoMigrate(&Result{}, &Statistic{}, &Error{}); err != nil {
 			panic(err)
 		}
-	default:
-		// 写入文件
-		if config.WTesterConfig.Result == nil {
-			pwd, _ := os.Getwd()
-			config.WTesterConfig.Result = &config.ResultConfig{
-				StorageType: constants.FileStorageType,
-				FileConfig: &config.FileConfig{
-					Path:    filepath.Join(pwd, constants.ResultFilePath),
-					BufSize: constants.ResultFileBufSize,
-				},
-			}
-		} else if config.WTesterConfig.Result.FileConfig == nil {
-			pwd, _ := os.Getwd()
-			config.WTesterConfig.Result.StorageType = constants.FileStorageType
-			config.WTesterConfig.Result.FileConfig = &config.FileConfig{
-				Path:    filepath.Join(pwd, constants.ResultFilePath),
-				BufSize: constants.ResultFileBufSize,
-			}
-		}
+		logger.Logger.Info(fmt.Sprintf("记录存储：recode=%s, Statistic=%s, error=%s",
+			config.WTesterConfig.Result.DbConfig.GetResultPath(), config.WTesterConfig.Result.DbConfig.GetStatisticPath(), config.WTesterConfig.Result.DbConfig.GetErrorPath()),
+		)
+	case constants.FileStorageType:
 		path := config.WTesterConfig.Result.FileConfig.Path
 		if err := library.CreateDirectoryIfNotExists(path); err != nil {
 			panic(err)
 		}
 		// 结果
-		if f, err := os.Create(filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "result.txt")); err != nil {
-			panic(err)
-		} else {
+		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetResultPath()); err == nil {
 			_ = f.Close()
+		} else {
+			panic(err)
 		}
 		// 异常结果
-		if f, err := os.Create(filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "error.txt")); err != nil {
-			panic(err)
-		} else {
+		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetErrorPath()); err == nil {
 			_ = f.Close()
+		} else {
+			panic(err)
 		}
 		// 统计结果
-		if f, err := os.Create(filepath.Join(config.WTesterConfig.Result.FileConfig.Path, "statistic.txt")); err != nil {
-			panic(err)
-		} else {
+		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetStatisticPath()); err == nil {
 			_ = f.Close()
+		} else {
+			panic(err)
 		}
+		logger.Logger.Info(fmt.Sprintf("记录存储路径：recode=%s, Statistic=%s, error=%s",
+			config.WTesterConfig.Result.FileConfig.GetResultPath(), config.WTesterConfig.Result.FileConfig.GetStatisticPath(), config.WTesterConfig.Result.FileConfig.GetErrorPath()),
+		)
+	default:
+		panic(fmt.Errorf("指定的存储类型不支持: %s, 目前仅支持：%s", config.WTesterConfig.Result.StorageType, constants.AllStorageType))
 	}
 }

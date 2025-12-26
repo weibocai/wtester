@@ -10,7 +10,7 @@ import (
 	"github.com/wtester/pkg/stage"
 )
 
-// 定义轮次配置执行器
+// SingleLoopRunner 定义轮次配置执行器
 type SingleLoopRunner struct {
 	Stage    *stage.Stage `json:"stage"`
 	DoneChan chan struct{}
@@ -39,8 +39,8 @@ func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
 	return true
 }
 
-// Done 测试结束执行的操作
-func (sr *SingleLoopRunner) Done(cf context.CancelFunc, wg *sync.WaitGroup) {
+// Daemon 测试结束执行的操作
+func (sr *SingleLoopRunner) Daemon(cf context.CancelFunc, wg *sync.WaitGroup) {
 	defer wg.Done()
 	<-sr.DoneChan // 关闭通道后，这里会立即返回
 	cf()
@@ -54,8 +54,8 @@ func (sr *SingleLoopRunner) GetCcCount() int {
 	return sr.ccCount
 }
 
-func (sr *SingleLoopRunner) PlusCcCount() {
-	sr.ccCount++
+func (sr *SingleLoopRunner) PlusCcCount(count int) {
+	sr.ccCount += count
 }
 
 func (sr *SingleLoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {

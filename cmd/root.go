@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/logger"
-	"github.com/wtester/pkg/result"
 )
 
 var configFile string
@@ -50,10 +49,7 @@ func initConfig() {
 	if err := viper.Unmarshal(&config.WTesterConfig); err != nil {
 		panic(fmt.Sprintf("Error parsing config file: %v", err))
 	}
-
+	config.WTesterConfig.SetVersion()
 	// 加载日志配置
 	logger.InitLogger()
-	// 加载结果保存配置
-	result.InitResult()
-	logger.Logger.Info("系统初始化完成")
 }

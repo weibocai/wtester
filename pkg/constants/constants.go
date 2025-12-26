@@ -11,6 +11,7 @@ const (
 type StorageType string
 
 const (
-	FileStorageType  StorageType = "file"  // 本地存储
-	MYSQLStorageType StorageType = "mysql" // mysql
+	FileStorageType  StorageType = "file"       // 本地存储
+	MysqlStorageType StorageType = "mysql"      // mysql
+	AllStorageType   StorageType = "file,mysql" // 声明支持的保存方式
 )

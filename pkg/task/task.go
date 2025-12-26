@@ -39,4 +39,5 @@ func GetTask(name string) (Task, error) {
 func init() {
 	RegisterTask("http", func() Task { return &HttpRequest{} })
 	RegisterTask("grpc", func() Task { return &GrpcRequest{} })
+	RegisterTask("grpc_reflection", func() Task { return &GrpcReflectionRequest{} })
 }

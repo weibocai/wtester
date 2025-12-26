@@ -48,9 +48,7 @@ func RegisterHttpClient(url string) (*http.Client, error) {
 		ExpectContinueTimeout: 10 * time.Second,
 		ResponseHeaderTimeout: 10 * time.Second,
 	}
-	c := &http.Client{
-		Transport: transport,
-	}
+	c := &http.Client{Transport: transport}
 	httpClientPool[host] = c
 	return c, nil
 }

@@ -8,20 +8,19 @@ import (
 
 	"github.com/k0kubun/go-ansi"
 	"github.com/schollz/progressbar/v3"
-
 	"github.com/wtester/pkg/library"
 	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/stage"
 	"github.com/wtester/pkg/task"
 )
 
-// 定义时间执行器
+// SingleDurationRunner 定义时间执行器
 type SingleDurationRunner struct {
 	Stage   *stage.Stage `json:"stage"`
 	ccCount int          // 当前并发个数
 }
 
-func (sr *SingleDurationRunner) Done(cf context.CancelFunc, wg *sync.WaitGroup) {
+func (sr *SingleDurationRunner) Daemon(cf context.CancelFunc, wg *sync.WaitGroup) {
 	defer wg.Done()
 	bar := progressbar.NewOptions(sr.Stage.GetDuration(),
 		progressbar.OptionSetWriter(ansi.NewAnsiStdout()), //you should install "github.com/k0kubun/go-ansi"
@@ -40,6 +39,7 @@ func (sr *SingleDurationRunner) Done(cf context.CancelFunc, wg *sync.WaitGroup) 
 		time.Sleep(time.Second * 1)
 	}
 	cf()
+	_ = bar.Close()
 }
 
 func (sr *SingleDurationRunner) GetStage() *stage.Stage {
@@ -50,8 +50,8 @@ func (sr *SingleDurationRunner) GetCcCount() int {
 	return sr.ccCount
 }
 
-func (sr *SingleDurationRunner) PlusCcCount() {
-	sr.ccCount++
+func (sr *SingleDurationRunner) PlusCcCount(count int) {
+	sr.ccCount += count
 }
 
 func (sr *SingleDurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
