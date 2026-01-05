@@ -63,7 +63,7 @@ func InitLogger() {
 			Compress:  false,                         // 是否压缩日志
 		}),
 		Size:          4096,
-		FlushInterval: time.Second, // 每分钟刷新一次
+		FlushInterval: time.Second, // 每秒刷新一次
 	}
 	// 创建 Core
 	core := zapcore.NewTee(

@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/influxdata/tdigest"
+	"github.com/wtester/pkg/config"
+	"github.com/wtester/pkg/logger"
 	"gorm.io/gorm"
 )
 
 var GormDB *gorm.DB
-
-const BatchSize = 100
 
 // MysqlProcessor 结果处理器
 type MysqlProcessor struct {
@@ -28,9 +28,9 @@ func (mp *MysqlProcessor) Init() error {
 	if GormDB == nil {
 		return errors.New("GormDB is nil")
 	}
-	mp.resultWriter = make(chan *Result, BatchSize)
-	mp.errorWriter = make(chan *Error, BatchSize)
-	mp.statisticWriter = make(chan *Statistic, BatchSize)
+	mp.resultWriter = make(chan *Result, config.WTesterConfig.Result.DbConfig.GetBatchSize())
+	mp.errorWriter = make(chan *Error, config.WTesterConfig.Result.DbConfig.GetBatchSize())
+	mp.statisticWriter = make(chan *Statistic, config.WTesterConfig.Result.DbConfig.GetBatchSize())
 	return nil
 }
 func (mp *MysqlProcessor) Done() error {
@@ -41,50 +41,68 @@ func (mp *MysqlProcessor) Done() error {
 }
 
 // 结果写入
-func (mp *MysqlProcessor) writeResult(group *sync.WaitGroup) {
+func (mp *MysqlProcessor) writeResult(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
 	var rs []*Result
-	for r := range mp.resultWriter {
-		rs = append(rs, r)
-		if len(rs) >= BatchSize {
-			GormDB.Create(&rs)
-			rs = make([]*Result, 0)
+	for {
+		select {
+		case <-ctx.Done():
+			if len(rs) > 0 {
+				GormDB.Create(&rs)
+			}
+			logger.Logger.Info("write result to db success")
+			return
+		case r := <-mp.resultWriter:
+			rs = append(rs, r)
+			if len(rs) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+				GormDB.Create(&rs)
+				rs = make([]*Result, 0)
+			}
 		}
-	}
-	if len(rs) > 0 {
-		GormDB.Create(&rs)
 	}
 }
 
 // 异常信息写入
-func (mp *MysqlProcessor) writeError(group *sync.WaitGroup) {
+func (mp *MysqlProcessor) writeError(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
 	var es []*Error
-	for err := range mp.errorWriter {
-		es = append(es, err)
-		if len(es) >= BatchSize {
-			GormDB.Create(&es)
-			es = make([]*Error, 0)
+	for {
+		select {
+		case <-ctx.Done():
+			if len(es) > 0 {
+				GormDB.Create(&es)
+			}
+			logger.Logger.Info("write error to db success")
+			return
+		case err := <-mp.errorWriter:
+			es = append(es, err)
+			if len(es) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+				GormDB.Create(&es)
+				es = make([]*Error, 0)
+			}
 		}
-	}
-	if len(es) > 0 {
-		GormDB.Create(&es)
 	}
 }
 
 // 统计信息写入
-func (mp *MysqlProcessor) writeStatistic(group *sync.WaitGroup) {
+func (mp *MysqlProcessor) writeStatistic(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
 	var ss []*Statistic
-	for s := range mp.statisticWriter {
-		ss = append(ss, s)
-		if len(ss) >= BatchSize {
-			GormDB.Create(&ss)
-			ss = make([]*Statistic, 0)
+	for {
+		select {
+		case <-ctx.Done():
+			if len(ss) > 0 {
+				GormDB.Create(&ss)
+			}
+			logger.Logger.Info("write statistic to db success")
+			return
+		case s := <-mp.statisticWriter:
+			ss = append(ss, s)
+			if len(ss) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+				GormDB.Create(&ss)
+				ss = make([]*Statistic, 0)
+			}
 		}
-	}
-	if len(ss) > 0 {
-		GormDB.Create(&ss)
 	}
 }
 
@@ -117,11 +135,13 @@ func (mp *MysqlProcessor) dealTd(statistic map[string]*Statistic, td map[string]
 func (mp *MysqlProcessor) Process(ctx context.Context, results chan *Result) {
 	ticker := time.NewTicker(mp.Sampling)
 	defer ticker.Stop()
+	// 确保程序总是正常中止
 	var group sync.WaitGroup
-	group.Add(6)
-	go mp.writeResult(&group)
-	go mp.writeError(&group)
-	go mp.writeStatistic(&group)
+	group.Add(3)
+	go mp.writeResult(ctx, &group)
+	go mp.writeError(ctx, &group)
+	go mp.writeStatistic(ctx, &group)
+	defer group.Wait()
 	td := map[string]*tdigest.TDigest{}
 	statistic := map[string]*Statistic{}
 	for {
@@ -134,7 +154,6 @@ func (mp *MysqlProcessor) Process(ctx context.Context, results chan *Result) {
 			// 如果结果为空，停止接收
 			if result == nil {
 				mp.dealTd(statistic, td)
-				group.Wait()
 				return
 			}
 			key := result.Stage + "&" + result.Task

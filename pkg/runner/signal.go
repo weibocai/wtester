@@ -34,7 +34,7 @@ func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan
 	sg := sr.GetStage()
 	// 任务并发器
 	var group sync.WaitGroup
-	group.Wait()
+	defer group.Wait()
 	tickerTask := func() bool {
 		rp := sg.RampUp
 		// 本次需要启动的并发的个数
@@ -102,8 +102,10 @@ func signalRunner(sr Runner) error {
 	}()
 	// 定时关闭
 	wg.Add(1)
+	// 守护协程，监控程序进程
 	go sr.Daemon(cancel, &wg)
 	wg.Add(1)
+	// 执行协程，定时启动协程执行测试
 	go signalRunTicker(ctx, sr, &wg, results)
 
 	wg.Wait()

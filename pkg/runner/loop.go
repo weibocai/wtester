@@ -42,7 +42,7 @@ func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
 // Daemon 测试结束执行的操作
 func (sr *SingleLoopRunner) Daemon(cf context.CancelFunc, wg *sync.WaitGroup) {
 	defer wg.Done()
-	<-sr.DoneChan // 关闭通道后，这里会立即返回
+	<-sr.DoneChan // 等待程序结束
 	cf()
 }
 

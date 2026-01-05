@@ -12,7 +12,6 @@ import (
 
 	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/constants"
-	"github.com/wtester/pkg/library"
 )
 
 // Error 请求结果
@@ -134,28 +133,6 @@ func InitResult() {
 			config.WTesterConfig.Result.DbConfig.GetResultPath(), config.WTesterConfig.Result.DbConfig.GetStatisticPath(), config.WTesterConfig.Result.DbConfig.GetErrorPath()),
 		)
 	case constants.FileStorageType:
-		path := config.WTesterConfig.Result.FileConfig.Path
-		if err := library.CreateDirectoryIfNotExists(path); err != nil {
-			panic(err)
-		}
-		// 结果
-		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetResultPath()); err == nil {
-			_ = f.Close()
-		} else {
-			panic(err)
-		}
-		// 异常结果
-		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetErrorPath()); err == nil {
-			_ = f.Close()
-		} else {
-			panic(err)
-		}
-		// 统计结果
-		if f, err := os.Create(config.WTesterConfig.Result.FileConfig.GetStatisticPath()); err == nil {
-			_ = f.Close()
-		} else {
-			panic(err)
-		}
 		logger.Logger.Info(fmt.Sprintf("记录存储路径：recode=%s, Statistic=%s, error=%s",
 			config.WTesterConfig.Result.FileConfig.GetResultPath(), config.WTesterConfig.Result.FileConfig.GetStatisticPath(), config.WTesterConfig.Result.FileConfig.GetErrorPath()),
 		)

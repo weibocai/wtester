@@ -25,5 +25,5 @@ func TestGrpcClientPool(t *testing.T) {
 		})
 	}
 	group.Wait()
-	CloseGrpcClient()
+	CloseGrpcReflectionClient()
 }

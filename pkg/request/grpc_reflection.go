@@ -44,7 +44,7 @@ func (c *DynamicGrpcClient) CallMethod(dynamicMsg *dynamicpb.Message) (string, e
 
 var grpcReflectionClientPool = make(map[string]*DynamicGrpcClient)
 
-// RegisterGrpcClient 注册grpc客户端
+// RegisterGrpcReflectionClient 注册grpc客户端
 func RegisterGrpcReflectionClient(url, serviceName, methodName string) (*DynamicGrpcClient, error) {
 	if c, ok := grpcReflectionClientPool[fmt.Sprintf("%s/%s/%s", url, serviceName, methodName)]; ok {
 		return c, nil
@@ -79,7 +79,7 @@ func RegisterGrpcReflectionClient(url, serviceName, methodName string) (*Dynamic
 	return c, nil
 }
 
-// GetGrpcClient 获取grpc客户端
+// GetGrpcReflectionClient 获取grpc客户端
 func GetGrpcReflectionClient(url string, serviceName, methodName string) (*DynamicGrpcClient, error) {
 	if c, ok := grpcReflectionClientPool[fmt.Sprintf("%s/%s/%s", url, serviceName, methodName)]; ok {
 		return c, nil
@@ -87,14 +87,14 @@ func GetGrpcReflectionClient(url string, serviceName, methodName string) (*Dynam
 	return nil, fmt.Errorf("找不到对应的客户端：%s/%s/%s", url, serviceName, methodName)
 }
 
-// CloseGrpcClient 结束时关闭连接
+// CloseGrpcReflectionClient 结束时关闭连接
 func CloseGrpcReflectionClient() {
 	for _, c := range grpcReflectionClientPool {
 		_ = c.conn.Close()
 	}
 }
 
-// GrpcRequest grpc 请求
+// GrpcReflectionRequest grpc 请求
 func GrpcReflectionRequest(url, serviceName, methodName string, requestData map[string]any) (string, error) {
 	c, err := GetGrpcReflectionClient(url, serviceName, methodName)
 	if c == nil {

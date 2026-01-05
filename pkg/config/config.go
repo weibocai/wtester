@@ -16,11 +16,12 @@ type LogConfig struct {
 
 // DbConfig 数据库配置
 type DbConfig struct {
-	Host     string `json:"host" yaml:"host" mapstructure:"host"`
-	Port     int    `json:"port" yaml:"port" mapstructure:"port"`
-	Username string `json:"username" yaml:"username" mapstructure:"username"`
-	Password string `json:"password" yaml:"password" mapstructure:"password"`
-	Database string `json:"database" yaml:"database" mapstructure:"database"`
+	Host      string `json:"host" yaml:"host" mapstructure:"host"`
+	Port      int    `json:"port" yaml:"port" mapstructure:"port"`
+	Username  string `json:"username" yaml:"username" mapstructure:"username"`
+	Password  string `json:"password" yaml:"password" mapstructure:"password"`
+	Database  string `json:"database" yaml:"database" mapstructure:"database"`
+	BatchSize int    `json:"batch_size" yaml:"batch_size" mapstructure:"batch_size"`
 }
 
 // GetHost 获取连接地址
@@ -72,6 +73,14 @@ func (f *DbConfig) GetErrorPath() string {
 // GetStatisticPath 统计文件路径
 func (f *DbConfig) GetStatisticPath() string {
 	return fmt.Sprintf("statistic_%s", WTesterConfig.GetVersion())
+}
+
+// GetBatchSize 批量插入数据大小
+func (f *DbConfig) GetBatchSize() int {
+	if f.BatchSize == 0 {
+		f.BatchSize = 100
+	}
+	return f.BatchSize
 }
 
 // FileConfig 文件配置

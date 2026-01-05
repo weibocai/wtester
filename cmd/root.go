@@ -20,7 +20,11 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if logger.Logger != nil {
+		_ = logger.Logger.Sync()
+	}
+	if err != nil {
 		panic(err)
 	}
 }
