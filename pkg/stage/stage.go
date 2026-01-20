@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/library"
-	"github.com/wtester/pkg/logger"
 	"github.com/wtester/pkg/task"
 	"go.yaml.in/yaml/v3"
 )
@@ -182,7 +182,7 @@ func (s *Stage) Init() error {
 	} else {
 		return err
 	}
-	logger.Logger.Info(s.Doc())
+	config.Logger.Info(s.Doc())
 	return nil
 }
 

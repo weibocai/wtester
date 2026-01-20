@@ -38,6 +38,6 @@ func init() {
 		return &FileProcessor{Sampling: sampling}
 	})
 	RegisterProcessor(constants.MysqlStorageType, func(sampling time.Duration) Processor {
-		return &MysqlProcessor{Sampling: sampling}
+		return &DbProcessor{Sampling: sampling}
 	})
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
-	"github.com/wtester/pkg/logger"
+	"github.com/wtester/pkg/config"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -18,7 +18,7 @@ import (
 // getMessageDescriptorCode 写入定义的数据类型，用于传参
 func getMessageDescriptorCode(msg []*desc.MessageDescriptor, writer *bufio.Writer) error {
 	for _, m := range msg {
-		logger.Logger.Info(m.GetName())
+		config.Logger.Info(m.GetName())
 		_, err := writer.WriteString(fmt.Sprintf("func (x *%s) SetPara(para map[string]any){\n", m.GetName()))
 		c := cases.Title(language.English)
 		for _, field := range m.GetFields() {

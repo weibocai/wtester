@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/wtester/pkg/config"
-	"github.com/wtester/pkg/logger"
 	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/stage"
 	"github.com/wtester/pkg/task"
@@ -57,7 +56,7 @@ func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan
 			}
 		}
 		sr.PlusCcCount(lrp)
-		logger.Logger.Info(fmt.Sprintf("总并发数：%d, 当前启动并发数：%d", sg.NumberOfConcurrent, sr.GetCcCount()))
+		config.Logger.Info(fmt.Sprintf("总并发数：%d, 当前启动并发数：%d", sg.NumberOfConcurrent, sr.GetCcCount()))
 		return true
 	}
 	// 任务启动：在计时器启动之前，启动一次任务
@@ -87,7 +86,7 @@ func signalRunner(sr Runner) error {
 	}
 	defer func() {
 		if err = rp.Done(); err != nil {
-			logger.Logger.Error(err.Error())
+			config.Logger.Error(err.Error())
 		}
 	}()
 
@@ -109,7 +108,7 @@ func signalRunner(sr Runner) error {
 	go signalRunTicker(ctx, sr, &wg, results)
 
 	wg.Wait()
-	logger.Logger.Info("我结束了")
+	config.Logger.Info("我结束了")
 	return nil
 }
 
@@ -124,7 +123,7 @@ func Signal(stages []*stage.Stage) {
 			sr = &SingleDurationRunner{Stage: st}
 		}
 		if err := signalRunner(sr); err != nil {
-			logger.Logger.Error(err.Error())
+			config.Logger.Error(err.Error())
 		}
 	}
 }

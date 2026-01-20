@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/wtester/pkg/logger"
+	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/protoreflect"
 )
 
@@ -38,29 +38,29 @@ var protoCmd = &cobra.Command{
 				return nil
 			})
 			if err != nil {
-				logger.Logger.Error(fmt.Sprintf("未找到有效的proto文件： %s", protoPath))
+				config.Logger.Error(fmt.Sprintf("未找到有效的proto文件： %s", protoPath))
 				panic(err)
 			}
 			if len(matches) == 0 {
-				logger.Logger.Error(fmt.Sprintf("未找到有效的proto文件： %s", protoPath))
+				config.Logger.Error(fmt.Sprintf("未找到有效的proto文件： %s", protoPath))
 				return
 			}
 			sArgs := []string{
 				"protoc", "--proto_path=" + protoPath, "--go_out=" + saveProtoPath, "--go_opt=paths=source_relative", "--go-grpc_out=" + saveProtoPath, "--go-grpc_opt=paths=source_relative",
 			}
 			sArgs = append(sArgs, matches...)
-			logger.Logger.Info("grpc 构建  " + strings.Join(sArgs, " "))
+			config.Logger.Info("grpc 构建  " + strings.Join(sArgs, " "))
 			sCmd := exec.Command(sArgs[0], sArgs[1:]...)
 			if output, err := sCmd.CombinedOutput(); err != nil {
 				fmt.Println(string(output), err)
-				logger.Logger.Error(string(output))
+				config.Logger.Error(string(output))
 				panic(err)
 			}
 		}
 		if needClient {
 			savePath := filepath.Join(pwd, "proto/proto.go")
 			if err := protoreflect.ParseProtoFile(protoPath, savePath); err != nil {
-				logger.Logger.Error("请求客户端构建失败")
+				config.Logger.Error("请求客户端构建失败")
 				panic(err)
 			}
 		}

@@ -1,11 +1,10 @@
-package logger
+package config
 
 import (
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/library"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -16,12 +15,12 @@ var Logger *zap.Logger // 日志
 
 // InitLogger 初始化全局日志系统
 func InitLogger() {
-	if config.WTesterConfig.Log == nil {
+	if WTesterConfig.Log == nil {
 		pwd, _ := os.Getwd()
-		config.WTesterConfig.Log = &config.LogConfig{Path: filepath.Join(pwd, "logs/info.log")}
+		WTesterConfig.Log = &LogConfig{Path: filepath.Join(pwd, "logs/info.log")}
 	}
 
-	if err := library.CreateFileIfNotExists(config.WTesterConfig.Log.Path); err != nil {
+	if err := library.CreateFileIfNotExists(WTesterConfig.Log.Path); err != nil {
 		panic(err)
 	}
 	// 配置 zap 编码器
@@ -56,11 +55,11 @@ func InitLogger() {
 	stdout := zapcore.AddSync(os.Stdout)
 	syncWriter := &zapcore.BufferedWriteSyncer{
 		WS: zapcore.AddSync(&lumberjack.Logger{
-			Filename:  config.WTesterConfig.Log.Path, // ⽇志⽂件路径
-			MaxSize:   100,                           // 单位为MB,默认为512MB
-			MaxAge:    5,                             // 文件最多保存多少天
-			LocalTime: true,                          // 采用本地时间
-			Compress:  false,                         // 是否压缩日志
+			Filename:  WTesterConfig.Log.Path, // ⽇志⽂件路径
+			MaxSize:   100,                    // 单位为MB,默认为512MB
+			MaxAge:    5,                      // 文件最多保存多少天
+			LocalTime: true,                   // 采用本地时间
+			Compress:  false,                  // 是否压缩日志
 		}),
 		Size:          4096,
 		FlushInterval: time.Second, // 每秒刷新一次

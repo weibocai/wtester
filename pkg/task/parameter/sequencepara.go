@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/library"
-	"github.com/wtester/pkg/logger"
 )
 
 // Sequence 解析结构型参数：根据start-step-end获取参数；如果指定多个参数，参数个数要能对应
@@ -39,17 +39,17 @@ type Sequence struct {
 func (s *Sequence) parseInt() error {
 	start, err := strconv.Atoi(s.Start)
 	if err != nil {
-		logger.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.Start, err.Error()))
+		config.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.Start, err.Error()))
 		return err
 	}
 	end, err := strconv.Atoi(s.End)
 	if err != nil {
-		logger.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.End, err.Error()))
+		config.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.End, err.Error()))
 		return err
 	}
 	step, err := strconv.Atoi(s.Step)
 	if err != nil {
-		logger.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.Step, err.Error()))
+		config.Logger.Error(fmt.Sprint("参数解析：", s.Key, s.Step, err.Error()))
 		return err
 	}
 	if step < 0 {
@@ -84,17 +84,17 @@ func (s *Sequence) parseInt() error {
 func (s *Sequence) parsingDatetime() error {
 	stepDatetime, step, unitDatetime, value, err := library.ParseDuration(s.Step)
 	if err != nil {
-		logger.Logger.Error(fmt.Sprint("参数解析：", s.Key, err))
+		config.Logger.Error(fmt.Sprint("参数解析：", s.Key, err))
 		return err
 	}
 	end, start := time.Now(), time.Now()
 	if start, err = time.Parse("2006-01-02 15:04:05", s.Start); err != nil {
-		logger.Logger.Error(fmt.Sprintf("参数解析: %s %s %s", s.Key, s.Start, err))
+		config.Logger.Error(fmt.Sprintf("参数解析: %s %s %s", s.Key, s.Start, err))
 		return err
 	}
 
 	if end, err = time.Parse("2006-01-02 15:04:05", s.End); err != nil {
-		logger.Logger.Error(fmt.Sprintf("参数解析: %s %s %s", s.Key, s.End, err))
+		config.Logger.Error(fmt.Sprintf("参数解析: %s %s %s", s.Key, s.End, err))
 		return err
 	}
 

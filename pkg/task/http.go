@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wtester/pkg/logger"
+	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/request"
 	"github.com/wtester/pkg/task/parameter"
 	"go.yaml.in/yaml/v3"
@@ -49,7 +49,7 @@ func (r *HttpRequest) getParam(index int) (map[string]any, error) {
 	for _, param := range r.params {
 		p, err := (*param).GetParam(index)
 		if err != nil {
-			logger.Logger.Error(fmt.Sprintf("task:%s 参数获取失败：%v", r.Name, err.Error()))
+			config.Logger.Error(fmt.Sprintf("task:%s 参数获取失败：%v", r.Name, err.Error()))
 			return nil, err
 		}
 		for k, v := range p {
@@ -99,7 +99,7 @@ func (r *HttpRequest) Init() error {
 				length = (*param).GetLength()
 				isInit = true
 			}
-			logger.Logger.Info(fmt.Sprintf("%d %d, %s", length, (*param).GetLength(), (*param).GetType()))
+			config.Logger.Info(fmt.Sprintf("%d %d, %s", length, (*param).GetLength(), (*param).GetType()))
 			if length != (*param).GetLength() {
 				return fmt.Errorf("task: 如果提供多种序列函数，序列的长度必须一致")
 			}
@@ -141,7 +141,7 @@ func (r *HttpRequest) SetParam() error {
 			if err := tp.Param.Decode(&path); err != nil {
 				return err
 			}
-			logger.Logger.Info(path)
+			config.Logger.Info(path)
 			if pp, err := parameter.GetParam(tp.Type, path); err != nil {
 				return err
 			} else {
@@ -201,7 +201,7 @@ func (r *HttpRequest) compare(index int, res string) bool {
 		return true
 	}
 	if equal, err := (*r.response).Verify(index, res); err != nil {
-		logger.Logger.Error(fmt.Sprintf("预计返回信息对比失败：%s, %d, %s", r.GetName(), index, err.Error()))
+		config.Logger.Error(fmt.Sprintf("预计返回信息对比失败：%s, %d, %s", r.GetName(), index, err.Error()))
 		return false
 	} else {
 		return equal

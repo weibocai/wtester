@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/wtester/pkg/config"
-	"github.com/wtester/pkg/logger"
 )
 
 var configFile string
@@ -21,8 +20,8 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	err := rootCmd.Execute()
-	if logger.Logger != nil {
-		_ = logger.Logger.Sync()
+	if config.Logger != nil {
+		_ = config.Logger.Sync()
 	}
 	if err != nil {
 		panic(err)
@@ -55,5 +54,5 @@ func initConfig() {
 	}
 	config.WTesterConfig.SetVersion()
 	// 加载日志配置
-	logger.InitLogger()
+	config.InitLogger()
 }

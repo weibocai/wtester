@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/wtester/pkg/logger"
+	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/request"
 	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/runner"
@@ -46,21 +46,21 @@ func closeStress() {
 
 func execute() error {
 	// 加载结果保存配置
-	logger.Logger.Info("初始化结果储存")
+	config.Logger.Info("初始化结果储存")
 	result.InitResult()
-	logger.Logger.Info("开始加载测试方案")
+	config.Logger.Info("开始加载测试方案")
 	if testPlan == "" {
 		pwd, _ := os.Getwd()
 		testPlan = filepath.Join(pwd, "configs", "wtester.yaml")
 	}
 	yamlStage, err := os.ReadFile(testPlan)
 	if err != nil {
-		logger.Logger.Error(err.Error())
+		config.Logger.Error(err.Error())
 		return err
 	}
 	var stageList []*stage.Stage
 	if err = yaml.Unmarshal(yamlStage, &stageList); err != nil {
-		logger.Logger.Error(err.Error())
+		config.Logger.Error(err.Error())
 		return err
 	}
 	for index := range stageList {
@@ -69,7 +69,7 @@ func execute() error {
 		}
 	}
 	runner.Signal(stageList)
-	logger.Logger.Info("本次测试结束")
+	config.Logger.Info("本次测试结束")
 	closeStress()
 	return nil
 }

@@ -6,14 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/influxdata/tdigest"
 	"github.com/wtester/pkg/config"
-	"github.com/wtester/pkg/logger"
 )
 
 // FileProcessor 文件结果处理器
@@ -96,35 +94,17 @@ func (fp *FileProcessor) Done() error {
 // 处理统计结果
 func (fp *FileProcessor) dealTd(eol []byte, statistic map[string]*Statistic, td map[string]*tdigest.TDigest) {
 	for k, ttd := range td {
-		P99 := ttd.Quantile(0.99)
-		if P99 < 0 || math.IsNaN(P99) {
-			P99 = 0
-		}
-		P95 := ttd.Quantile(0.95)
-		if P95 < 0 || math.IsNaN(P95) {
-			P95 = 0
-		}
-		P50 := ttd.Quantile(0.50)
-		if P50 < 0 || math.IsNaN(P50) {
-			P50 = 0
-		}
-		statistic[k].P99 = P99
-		statistic[k].P95 = P95
-		statistic[k].P50 = P50
-		statistic[k].CC = statistic[k].CC / statistic[k].Count
-		ttd.Reset()
-		statistic[k].Avg = int(statistic[k].Sum) / (statistic[k].SuccessCount + statistic[k].FailureCount)
-		statistic[k].Datetime = time.Now()
+		statistic[k].UpdateStatistic(ttd)
 		// 结果写入文件
 		if jsonResult, err := json.Marshal(statistic[k]); err != nil {
-			logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
+			config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
 		} else {
 			if _, err = fp.statisticWriter.Write(jsonResult); err != nil {
-				logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
+				config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
 				continue
 			}
 			if _, err = fp.statisticWriter.Write(eol); err != nil {
-				logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
+				config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", statistic[k], err))
 			}
 		}
 	}
@@ -169,28 +149,28 @@ func (fp *FileProcessor) Process(ctx context.Context, results chan *Result) {
 			if result.IsSuccess {
 				// 结果写入文件
 				if jsonResult, err := json.Marshal(result); err != nil {
-					logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+					config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 				} else {
 					if _, err = fp.resultWriter.Write(jsonResult); err != nil {
-						logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+						config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 						continue
 					}
 					if _, err = fp.resultWriter.Write(eol); err != nil {
-						logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+						config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 					}
 				}
 			} else {
 				// 结果写入文件
 				errResult := result.ToError()
 				if jsonResult, err := json.Marshal(errResult); err != nil {
-					logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+					config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 				} else {
 					if _, err = fp.errorWriter.Write(jsonResult); err != nil {
-						logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+						config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 						continue
 					}
 					if _, err = fp.errorWriter.Write(eol); err != nil {
-						logger.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
+						config.Logger.Warn(fmt.Sprintf("结果写入异常：%v, %s", result, err))
 					}
 				}
 			}

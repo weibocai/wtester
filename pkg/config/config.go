@@ -55,9 +55,16 @@ func (f *DbConfig) GetDatabase() string {
 }
 
 // GetDns 连接串
-func (f *DbConfig) GetDns() string {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", f.GetUsername(), f.GetPassword(), f.GetHost(), f.GetPort(), f.GetDatabase())
-	return dsn
+func (f *DbConfig) GetDsn(kind string) (string, error) {
+	switch kind {
+	case "pg":
+		return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d", f.GetHost(), f.GetUsername(), f.GetPassword(), f.GetDatabase(), f.GetPort()), nil
+	case "mysql":
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", f.GetUsername(), f.GetPassword(), f.GetHost(), f.GetPort(), f.GetDatabase()), nil
+	default:
+		return "", fmt.Errorf("")
+
+	}
 }
 
 // GetResultPath 全量日志存储路径
