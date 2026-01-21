@@ -108,14 +108,16 @@ func (f *DbConfig) GetBatchSize() int {
 
 // Config 全局配置
 type Config struct {
-	Log     *LogConfig `json:"log" yaml:"log" mapstructure:"log"`
-	Db      *DbConfig  `json:"db" yaml:"db" mapstructure:"db"`
-	Version string     `json:"version" yaml:"version" mapstructure:"version"`
+	Log     *LogConfig `json:"log" yaml:"log" mapstructure:"log"`             // 日志相关配置
+	Db      *DbConfig  `json:"db" yaml:"db" mapstructure:"db"`                // 数据库 or 文件相关配置
+	Version string     `json:"version" yaml:"version" mapstructure:"version"` // 记录测试版本，便于数据区分
 }
 
-func (c *Config) SetVersion() {
-	c.Version = strings.Replace(time.Now().Format("20060102150405.000"), ".", "", 1)
-	fmt.Println(c.Version)
+func (c *Config) SetVersion(version string) {
+	if version == "" {
+		version = strings.Replace(time.Now().Format("20060102150405.000"), ".", "", 1)
+	}
+	c.Version = version
 }
 func (c *Config) GetVersion() string {
 	return c.Version

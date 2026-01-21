@@ -60,6 +60,7 @@ func InitStorge() error {
 		panic(fmt.Errorf("指定的存储类型不支持: %s, 目前仅支持：%s", config.WTesterConfig.Db.StorageType, constants.AllStorageType))
 	}
 
+	// 数据库相关配置初始化
 	if config.WTesterConfig.Db.StorageType != constants.FileStorageType {
 		sqlDB, err := GormDB.DB()
 		if err != nil {

@@ -72,6 +72,7 @@ func execute() error {
 	}
 	runner.Signal(stageList)
 	config.Logger.Info("本次测试结束")
+	// 关闭需要关闭
 	closeStress()
 	return nil
 }

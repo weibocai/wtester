@@ -10,6 +10,7 @@ import (
 	"github.com/wtester/pkg/config"
 )
 
+var version string
 var configFile string
 
 var rootCmd = &cobra.Command{
@@ -30,7 +31,8 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&configFile, "cf", "", "config flies")
+	rootCmd.PersistentFlags().StringVar(&configFile, "cf", "", "配置文件路径")
+	rootCmd.PersistentFlags().StringVar(&version, "v", "", "测试数据保存版本")
 }
 
 func initConfig() {
@@ -52,7 +54,7 @@ func initConfig() {
 	if err := viper.Unmarshal(&config.WTesterConfig); err != nil {
 		panic(fmt.Sprintf("Error parsing config file: %v", err))
 	}
-	config.WTesterConfig.SetVersion()
+	config.WTesterConfig.SetVersion(version)
 	// 加载日志配置
 	config.InitLogger()
 }
