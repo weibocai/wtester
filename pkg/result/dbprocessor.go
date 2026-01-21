@@ -26,9 +26,9 @@ func (mp *DbProcessor) Init() error {
 	if GormDB == nil {
 		return errors.New("GormDB is nil")
 	}
-	mp.resultWriter = make(chan *Result, config.WTesterConfig.Result.DbConfig.GetBatchSize())
-	mp.errorWriter = make(chan *Error, config.WTesterConfig.Result.DbConfig.GetBatchSize())
-	mp.statisticWriter = make(chan *Statistic, config.WTesterConfig.Result.DbConfig.GetBatchSize())
+	mp.resultWriter = make(chan *Result, config.WTesterConfig.Db.GetBatchSize())
+	mp.errorWriter = make(chan *Error, config.WTesterConfig.Db.GetBatchSize())
+	mp.statisticWriter = make(chan *Statistic, config.WTesterConfig.Db.GetBatchSize())
 	return nil
 }
 func (mp *DbProcessor) Done() error {
@@ -52,7 +52,7 @@ func (mp *DbProcessor) writeResult(ctx context.Context, group *sync.WaitGroup) {
 			return
 		case r := <-mp.resultWriter:
 			rs = append(rs, r)
-			if len(rs) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+			if len(rs) >= config.WTesterConfig.Db.GetBatchSize() {
 				GormDB.Create(&rs)
 				rs = make([]*Result, 0)
 			}
@@ -74,7 +74,7 @@ func (mp *DbProcessor) writeError(ctx context.Context, group *sync.WaitGroup) {
 			return
 		case err := <-mp.errorWriter:
 			es = append(es, err)
-			if len(es) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+			if len(es) >= config.WTesterConfig.Db.GetBatchSize() {
 				GormDB.Create(&es)
 				es = make([]*Error, 0)
 			}
@@ -96,7 +96,7 @@ func (mp *DbProcessor) writeStatistic(ctx context.Context, group *sync.WaitGroup
 			return
 		case s := <-mp.statisticWriter:
 			ss = append(ss, s)
-			if len(ss) >= config.WTesterConfig.Result.DbConfig.GetBatchSize() {
+			if len(ss) >= config.WTesterConfig.Db.GetBatchSize() {
 				GormDB.Create(&ss)
 				ss = make([]*Statistic, 0)
 			}

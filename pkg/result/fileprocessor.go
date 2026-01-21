@@ -29,25 +29,25 @@ type FileProcessor struct {
 func (fp *FileProcessor) Init() error {
 	var err error
 	// 请求结果
-	fp.resultFIle, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetResultPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	fp.resultFIle, err = os.OpenFile(config.WTesterConfig.Db.GetResultPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
-	fp.resultWriter = bufio.NewWriterSize(fp.resultFIle, config.WTesterConfig.Result.FileConfig.BufSize)
+	fp.resultWriter = bufio.NewWriterSize(fp.resultFIle, config.WTesterConfig.Db.GetBatchSize())
 
 	// 异常结果
-	fp.errorFile, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetErrorPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	fp.errorFile, err = os.OpenFile(config.WTesterConfig.Db.GetErrorPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
-	fp.errorWriter = bufio.NewWriterSize(fp.statisticFile, config.WTesterConfig.Result.FileConfig.BufSize)
+	fp.errorWriter = bufio.NewWriterSize(fp.statisticFile, config.WTesterConfig.Db.GetBatchSize())
 
 	// 统计结果
-	fp.statisticFile, err = os.OpenFile(config.WTesterConfig.Result.FileConfig.GetStatisticPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	fp.statisticFile, err = os.OpenFile(config.WTesterConfig.Db.GetStatisticPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
-	fp.statisticWriter = bufio.NewWriterSize(fp.statisticFile, config.WTesterConfig.Result.FileConfig.BufSize)
+	fp.statisticWriter = bufio.NewWriterSize(fp.statisticFile, config.WTesterConfig.Db.GetBatchSize())
 	return nil
 }
 

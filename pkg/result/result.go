@@ -27,7 +27,7 @@ type Error struct {
 }
 
 func (Error) TableName() string {
-	return config.WTesterConfig.Result.DbConfig.GetErrorPath()
+	return config.WTesterConfig.Db.GetErrorPath()
 }
 
 // Result 请求结果
@@ -44,7 +44,7 @@ type Result struct {
 }
 
 func (Result) TableName() string {
-	return config.WTesterConfig.Result.DbConfig.GetResultPath()
+	return config.WTesterConfig.Db.GetResultPath()
 }
 
 func (r Result) ToError() *Error {
@@ -75,7 +75,7 @@ type Statistic struct {
 }
 
 func (*Statistic) TableName() string {
-	return config.WTesterConfig.Result.DbConfig.GetStatisticPath()
+	return config.WTesterConfig.Db.GetStatisticPath()
 }
 
 // Reset 重置统计结果
@@ -116,36 +116,34 @@ func (s *Statistic) UpdateStatistic(ttd *tdigest.TDigest) {
 // InitResult 初始化结果记录
 func InitResult() error {
 	// 如果未声明日志保存方式，默认为写入本地文件；或是只是指定了存储到文件，但是没有具体写文件的路径，这里配置默认的文件路径
-	if config.WTesterConfig.Result == nil || (config.WTesterConfig.Result.StorageType == constants.FileStorageType && config.WTesterConfig.Result.FileConfig == nil) {
+	if config.WTesterConfig.Db == nil {
 		pwd, _ := os.Getwd()
-		config.WTesterConfig.Result = &config.ResultConfig{
+		config.WTesterConfig.Db = &config.DbConfig{
 			StorageType: constants.FileStorageType,
-			FileConfig: &config.FileConfig{
-				Path:    filepath.Join(pwd, constants.ResultFilePath),
-				BufSize: constants.ResultFileBufSize,
-			},
+			Path:        filepath.Join(pwd, constants.ResultFilePath),
+			BatchSize:   constants.ResultFileBufSize,
 		}
 	}
 
 	// 日志保存配置初始化
 	var dsn string
 	var err error
-	switch config.WTesterConfig.Result.StorageType {
+	switch config.WTesterConfig.Db.StorageType {
 	case constants.MysqlStorageType:
-		if config.WTesterConfig.Result.DbConfig == nil || config.WTesterConfig.Result.DbConfig.GetPassword() == "" || config.WTesterConfig.Result.DbConfig.GetDatabase() == "" {
-			return fmt.Errorf("数据库参数配置异常：password=%s; Database=%s", config.WTesterConfig.Result.DbConfig.GetPassword(), config.WTesterConfig.Result.DbConfig.GetDatabase())
+		if config.WTesterConfig.Db == nil || config.WTesterConfig.Db.GetPassword() == "" || config.WTesterConfig.Db.GetDatabase() == "" {
+			return fmt.Errorf("数据库参数配置异常：password=%s; Database=%s", config.WTesterConfig.Db.GetPassword(), config.WTesterConfig.Db.GetDatabase())
 		}
-		if dsn, err = config.WTesterConfig.Result.DbConfig.GetDsn("pg"); err != nil {
+		if dsn, err = config.WTesterConfig.Db.GetDsn("pg"); err != nil {
 			return err
 		}
 		if GormDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
 			return err
 		}
 	case constants.PostgreSQLStorageType:
-		if config.WTesterConfig.Result.DbConfig == nil || config.WTesterConfig.Result.DbConfig.GetPassword() == "" || config.WTesterConfig.Result.DbConfig.GetDatabase() == "" {
-			return fmt.Errorf("数据库参数配置异常：password=%s; Database=%s", config.WTesterConfig.Result.DbConfig.GetPassword(), config.WTesterConfig.Result.DbConfig.GetDatabase())
+		if config.WTesterConfig.Db == nil || config.WTesterConfig.Db.GetPassword() == "" || config.WTesterConfig.Db.GetDatabase() == "" {
+			return fmt.Errorf("数据库参数配置异常：password=%s; Database=%s", config.WTesterConfig.Db.GetPassword(), config.WTesterConfig.Db.GetDatabase())
 		}
-		if dsn, err = config.WTesterConfig.Result.DbConfig.GetDsn("pg"); err != nil {
+		if dsn, err = config.WTesterConfig.Db.GetDsn("pg"); err != nil {
 			return err
 		}
 		if GormDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{}); err != nil {
@@ -154,13 +152,13 @@ func InitResult() error {
 
 	case constants.FileStorageType:
 		config.Logger.Info(fmt.Sprintf("记录存储路径：recode=%s, Statistic=%s, error=%s",
-			config.WTesterConfig.Result.FileConfig.GetResultPath(), config.WTesterConfig.Result.FileConfig.GetStatisticPath(), config.WTesterConfig.Result.FileConfig.GetErrorPath()),
+			config.WTesterConfig.Db.GetResultPath(), config.WTesterConfig.Db.GetStatisticPath(), config.WTesterConfig.Db.GetErrorPath()),
 		)
 	default:
-		panic(fmt.Errorf("指定的存储类型不支持: %s, 目前仅支持：%s", config.WTesterConfig.Result.StorageType, constants.AllStorageType))
+		panic(fmt.Errorf("指定的存储类型不支持: %s, 目前仅支持：%s", config.WTesterConfig.Db.StorageType, constants.AllStorageType))
 	}
 
-	if config.WTesterConfig.Result.StorageType != constants.FileStorageType {
+	if config.WTesterConfig.Db.StorageType != constants.FileStorageType {
 		sqlDB, err := GormDB.DB()
 		if err != nil {
 			return err
@@ -176,7 +174,7 @@ func InitResult() error {
 			return err
 		}
 		config.Logger.Info(fmt.Sprintf("记录存储：recode=%s, Statistic=%s, error=%s",
-			config.WTesterConfig.Result.DbConfig.GetResultPath(), config.WTesterConfig.Result.DbConfig.GetStatisticPath(), config.WTesterConfig.Result.DbConfig.GetErrorPath()),
+			config.WTesterConfig.Db.GetResultPath(), config.WTesterConfig.Db.GetStatisticPath(), config.WTesterConfig.Db.GetErrorPath()),
 		)
 	}
 	return nil

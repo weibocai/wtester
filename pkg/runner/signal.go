@@ -77,7 +77,7 @@ func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan
 func signalRunner(sr Runner) error {
 	// 启动异常收集功能
 	sg := sr.GetStage()
-	rp, err := result.GetProcessor(config.WTesterConfig.Result.StorageType, sg.GetSampling())
+	rp, err := result.GetProcessor(config.WTesterConfig.Db.StorageType, sg.GetSampling())
 	if err != nil {
 		return fmt.Errorf("%s 启动失败: %v", sg.Name, err)
 	}

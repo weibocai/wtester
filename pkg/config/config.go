@@ -16,6 +16,12 @@ type LogConfig struct {
 
 // DbConfig 数据库配置
 type DbConfig struct {
+	StorageType constants.StorageType `json:"storageType" yaml:"storageType" mapstructure:"storageType"` // 存储介质
+
+	// 文件存储路径
+	Path string `json:"path" yaml:"path" mapstructure:"path"`
+
+	// 数据库配置
 	Host      string `json:"host" yaml:"host" mapstructure:"host"`
 	Port      int    `json:"port" yaml:"port" mapstructure:"port"`
 	Username  string `json:"username" yaml:"username" mapstructure:"username"`
@@ -69,16 +75,26 @@ func (f *DbConfig) GetDsn(kind string) (string, error) {
 
 // GetResultPath 全量日志存储路径
 func (f *DbConfig) GetResultPath() string {
+	if f.StorageType == constants.FileStorageType {
+		return filepath.Join(f.Path, fmt.Sprintf("result_%s.txt", WTesterConfig.GetVersion()))
+	}
 	return fmt.Sprintf("result_%s", WTesterConfig.GetVersion())
 }
 
 // GetErrorPath 失败文件路径
 func (f *DbConfig) GetErrorPath() string {
+	if f.StorageType == constants.FileStorageType {
+		return filepath.Join(f.Path, fmt.Sprintf("error_%s.txt", WTesterConfig.GetVersion()))
+	}
 	return fmt.Sprintf("error_%s", WTesterConfig.GetVersion())
 }
 
 // GetStatisticPath 统计文件路径
 func (f *DbConfig) GetStatisticPath() string {
+	if f.StorageType == constants.FileStorageType {
+		return filepath.Join(f.Path, fmt.Sprintf("statistic_%s.txt", WTesterConfig.GetVersion()))
+
+	}
 	return fmt.Sprintf("statistic_%s", WTesterConfig.GetVersion())
 }
 
@@ -90,44 +106,11 @@ func (f *DbConfig) GetBatchSize() int {
 	return f.BatchSize
 }
 
-// FileConfig 文件配置
-type FileConfig struct {
-	Path    string `json:"path" yaml:"path" mapstructure:"path"`
-	BufSize int    `json:"bufSize" yaml:"bufSize" mapstructure:"bufSize"`
-}
-
-// GetResultPath 全量日志存储路径
-func (f *FileConfig) GetResultPath() string {
-	return filepath.Join(f.Path, fmt.Sprintf("result_%s.txt", WTesterConfig.GetVersion()))
-}
-
-// GetErrorPath 失败文件路径
-func (f *FileConfig) GetErrorPath() string {
-	return filepath.Join(f.Path, fmt.Sprintf("error_%s.txt", WTesterConfig.GetVersion()))
-}
-
-// GetStatisticPath 统计文件路径
-func (f *FileConfig) GetStatisticPath() string {
-	return filepath.Join(f.Path, fmt.Sprintf("statistic_%s.txt", WTesterConfig.GetVersion()))
-}
-
-// GetResultBufSize 批次缓存大小
-func (f *FileConfig) GetResultBufSize() int {
-	return f.BufSize
-}
-
-// ResultConfig 结果存储配置
-type ResultConfig struct {
-	StorageType constants.StorageType `json:"storageType" yaml:"storageType" mapstructure:"storageType"` // 存储介质
-	FileConfig  *FileConfig           `json:"fileConfig" yaml:"fileConfig" mapstructure:"fileConfig"`    // 文本存储
-	DbConfig    *DbConfig             `json:"dbConfig" yaml:"dbConfig" mapstructure:"dbConfig"`          // 数据库存储
-}
-
 // Config 全局配置
 type Config struct {
-	Log     *LogConfig    `json:"log" yaml:"log" mapstructure:"log"`
-	Result  *ResultConfig `json:"result" yaml:"result" mapstructure:"result"`
-	Version string        `json:"version" yaml:"version" mapstructure:"version"`
+	Log     *LogConfig `json:"log" yaml:"log" mapstructure:"log"`
+	Db      *DbConfig  `json:"db" yaml:"db" mapstructure:"db"`
+	Version string     `json:"version" yaml:"version" mapstructure:"version"`
 }
 
 func (c *Config) SetVersion() {
