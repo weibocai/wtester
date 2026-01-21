@@ -8,27 +8,25 @@ import (
 
 	"github.com/influxdata/tdigest"
 	"github.com/wtester/pkg/config"
-	"gorm.io/gorm"
+	"github.com/wtester/pkg/storge"
 )
-
-var GormDB *gorm.DB
 
 // DbProcessor 结果处理器
 type DbProcessor struct {
 	Sampling time.Duration // 采样频率
 
-	resultWriter    chan *Result
-	errorWriter     chan *Error
-	statisticWriter chan *Statistic
+	resultWriter    chan *storge.Result
+	errorWriter     chan *storge.Error
+	statisticWriter chan *storge.Statistic
 }
 
 func (mp *DbProcessor) Init() error {
-	if GormDB == nil {
+	if storge.GormDB == nil {
 		return errors.New("GormDB is nil")
 	}
-	mp.resultWriter = make(chan *Result, config.WTesterConfig.Db.GetBatchSize())
-	mp.errorWriter = make(chan *Error, config.WTesterConfig.Db.GetBatchSize())
-	mp.statisticWriter = make(chan *Statistic, config.WTesterConfig.Db.GetBatchSize())
+	mp.resultWriter = make(chan *storge.Result, config.WTesterConfig.Db.GetBatchSize())
+	mp.errorWriter = make(chan *storge.Error, config.WTesterConfig.Db.GetBatchSize())
+	mp.statisticWriter = make(chan *storge.Statistic, config.WTesterConfig.Db.GetBatchSize())
 	return nil
 }
 func (mp *DbProcessor) Done() error {
@@ -41,20 +39,20 @@ func (mp *DbProcessor) Done() error {
 // 结果写入
 func (mp *DbProcessor) writeResult(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
-	var rs []*Result
+	var rs []*storge.Result
 	for {
 		select {
 		case <-ctx.Done():
 			if len(rs) > 0 {
-				GormDB.Create(&rs)
+				storge.GormDB.Create(&rs)
 			}
 			config.Logger.Info("write result to db success")
 			return
 		case r := <-mp.resultWriter:
 			rs = append(rs, r)
 			if len(rs) >= config.WTesterConfig.Db.GetBatchSize() {
-				GormDB.Create(&rs)
-				rs = make([]*Result, 0)
+				storge.GormDB.Create(&rs)
+				rs = make([]*storge.Result, 0)
 			}
 		}
 	}
@@ -63,20 +61,20 @@ func (mp *DbProcessor) writeResult(ctx context.Context, group *sync.WaitGroup) {
 // 异常信息写入
 func (mp *DbProcessor) writeError(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
-	var es []*Error
+	var es []*storge.Error
 	for {
 		select {
 		case <-ctx.Done():
 			if len(es) > 0 {
-				GormDB.Create(&es)
+				storge.GormDB.Create(&es)
 			}
 			config.Logger.Info("write error to db success")
 			return
 		case err := <-mp.errorWriter:
 			es = append(es, err)
 			if len(es) >= config.WTesterConfig.Db.GetBatchSize() {
-				GormDB.Create(&es)
-				es = make([]*Error, 0)
+				storge.GormDB.Create(&es)
+				es = make([]*storge.Error, 0)
 			}
 		}
 	}
@@ -85,34 +83,34 @@ func (mp *DbProcessor) writeError(ctx context.Context, group *sync.WaitGroup) {
 // 统计信息写入
 func (mp *DbProcessor) writeStatistic(ctx context.Context, group *sync.WaitGroup) {
 	defer group.Done()
-	var ss []*Statistic
+	var ss []*storge.Statistic
 	for {
 		select {
 		case <-ctx.Done():
 			if len(ss) > 0 {
-				GormDB.Create(&ss)
+				storge.GormDB.Create(&ss)
 			}
 			config.Logger.Info("write statistic to db success")
 			return
 		case s := <-mp.statisticWriter:
 			ss = append(ss, s)
 			if len(ss) >= config.WTesterConfig.Db.GetBatchSize() {
-				GormDB.Create(&ss)
-				ss = make([]*Statistic, 0)
+				storge.GormDB.Create(&ss)
+				ss = make([]*storge.Statistic, 0)
 			}
 		}
 	}
 }
 
 // 汇总结过处理
-func (mp *DbProcessor) dealTd(statistic map[string]*Statistic, td map[string]*tdigest.TDigest) {
+func (mp *DbProcessor) dealTd(statistic map[string]*storge.Statistic, td map[string]*tdigest.TDigest) {
 	for k, ttd := range td {
 		statistic[k].UpdateStatistic(ttd)
 		mp.statisticWriter <- statistic[k]
 	}
 }
 
-func (mp *DbProcessor) Process(ctx context.Context, results chan *Result) {
+func (mp *DbProcessor) Process(ctx context.Context, results chan *storge.Result) {
 	ticker := time.NewTicker(mp.Sampling)
 	defer ticker.Stop()
 	// 确保程序总是正常中止
@@ -123,7 +121,7 @@ func (mp *DbProcessor) Process(ctx context.Context, results chan *Result) {
 	go mp.writeStatistic(ctx, &group)
 	defer group.Wait()
 	td := map[string]*tdigest.TDigest{}
-	statistic := map[string]*Statistic{}
+	statistic := map[string]*storge.Statistic{}
 	for {
 		select {
 		case <-ctx.Done():
@@ -139,7 +137,7 @@ func (mp *DbProcessor) Process(ctx context.Context, results chan *Result) {
 			key := result.Stage + "&" + result.Task
 			if _, ok := td[key]; !ok {
 				td[key] = tdigest.New()
-				statistic[key] = &Statistic{
+				statistic[key] = &storge.Statistic{
 					Stage: result.Stage, Task: result.Task, SuccessCount: 0, FailureCount: 0, Avg: 0, P50: 0, P99: 0, P95: 0, Datetime: time.Now(), CC: 0,
 				}
 			}

@@ -9,8 +9,8 @@ import (
 	"github.com/k0kubun/go-ansi"
 	"github.com/schollz/progressbar/v3"
 	"github.com/wtester/pkg/library"
-	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/stage"
+	"github.com/wtester/pkg/storge"
 	"github.com/wtester/pkg/task"
 )
 
@@ -54,7 +54,7 @@ func (sr *SingleDurationRunner) PlusCcCount(count int) {
 	sr.ccCount += count
 }
 
-func (sr *SingleDurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleDurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	// 初始化随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -81,7 +81,7 @@ func (sr *SingleDurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitG
 	}
 }
 
-func (sr *SingleDurationRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleDurationRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	// 设置随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -117,7 +117,7 @@ func (sr *SingleDurationRunner) RunnerWeight(ctx context.Context, wg *sync.WaitG
 	}
 }
 
-func (sr *SingleDurationRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleDurationRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	tasks := sr.Stage.GetTasks()
 	index, pIndex, lTask := 0, 0, len(tasks)

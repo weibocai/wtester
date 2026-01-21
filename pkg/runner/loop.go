@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/stage"
+	"github.com/wtester/pkg/storge"
 )
 
 // SingleLoopRunner 定义轮次配置执行器
@@ -58,11 +58,11 @@ func (sr *SingleLoopRunner) PlusCcCount(count int) {
 	sr.ccCount += count
 }
 
-func (sr *SingleLoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleLoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	wg.Done()
 }
 
-func (sr *SingleLoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleLoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	// 设置随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -86,7 +86,7 @@ func (sr *SingleLoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup
 	}
 }
 
-func (sr *SingleLoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *result.Result) {
+func (sr *SingleLoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	tasks := sr.Stage.GetTasks()
 	lTask := len(tasks)

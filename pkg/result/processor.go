@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/wtester/pkg/constants"
+	"github.com/wtester/pkg/storge"
 )
 
 type Processor interface {
-	Init() error                                       // 初始化以及参数校验
-	Process(ctx context.Context, results chan *Result) // 结果处理过程
-	Done() error                                       // 收尾
+	Init() error                                              // 初始化以及参数校验
+	Process(ctx context.Context, results chan *storge.Result) // 结果处理过程
+	Done() error                                              // 收尾
 }
 
 type ProcessorFactory func(sampling time.Duration) Processor

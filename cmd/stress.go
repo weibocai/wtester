@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/request"
-	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/runner"
 	"github.com/wtester/pkg/stage"
+	"github.com/wtester/pkg/storge"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -34,8 +34,8 @@ func init() {
 
 // 执行完之后，需要做一些清理的工作，在这里完成
 func closeStress() {
-	if result.GormDB != nil {
-		if sqlDB, err := result.GormDB.DB(); err == nil {
+	if storge.GormDB != nil {
+		if sqlDB, err := storge.GormDB.DB(); err == nil {
 			_ = sqlDB.Close()
 		}
 	}
@@ -47,7 +47,9 @@ func closeStress() {
 func execute() error {
 	// 加载结果保存配置
 	config.Logger.Info("初始化结果储存")
-	result.InitResult()
+	if err := storge.InitStorge(); err != nil {
+		return err
+	}
 	config.Logger.Info("开始加载测试方案")
 	if testPlan == "" {
 		pwd, _ := os.Getwd()

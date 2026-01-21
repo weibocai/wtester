@@ -12,6 +12,7 @@ import (
 
 	"github.com/influxdata/tdigest"
 	"github.com/wtester/pkg/config"
+	"github.com/wtester/pkg/storge"
 )
 
 // FileProcessor 文件结果处理器
@@ -92,7 +93,7 @@ func (fp *FileProcessor) Done() error {
 }
 
 // 处理统计结果
-func (fp *FileProcessor) dealTd(eol []byte, statistic map[string]*Statistic, td map[string]*tdigest.TDigest) {
+func (fp *FileProcessor) dealTd(eol []byte, statistic map[string]*storge.Statistic, td map[string]*tdigest.TDigest) {
 	for k, ttd := range td {
 		statistic[k].UpdateStatistic(ttd)
 		// 结果写入文件
@@ -110,12 +111,12 @@ func (fp *FileProcessor) dealTd(eol []byte, statistic map[string]*Statistic, td 
 	}
 }
 
-func (fp *FileProcessor) Process(ctx context.Context, results chan *Result) {
+func (fp *FileProcessor) Process(ctx context.Context, results chan *storge.Result) {
 	ticker := time.NewTicker(fp.Sampling)
 	defer ticker.Stop()
 	eol := []byte{'\n'}
 	td := map[string]*tdigest.TDigest{}
-	statistic := map[string]*Statistic{}
+	statistic := map[string]*storge.Statistic{}
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,7 +132,7 @@ func (fp *FileProcessor) Process(ctx context.Context, results chan *Result) {
 			key := result.Stage + "&" + result.Task
 			if _, ok := td[key]; !ok {
 				td[key] = tdigest.New()
-				statistic[key] = &Statistic{
+				statistic[key] = &storge.Statistic{
 					Stage: result.Stage, Task: result.Task, SuccessCount: 0, FailureCount: 0, Avg: 0, P50: 0, P99: 0, P95: 0, Datetime: time.Now(), CC: 0,
 				}
 			}

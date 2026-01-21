@@ -9,23 +9,24 @@ import (
 	"github.com/wtester/pkg/config"
 	"github.com/wtester/pkg/result"
 	"github.com/wtester/pkg/stage"
+	"github.com/wtester/pkg/storge"
 	"github.com/wtester/pkg/task"
 )
 
-func writeResult(sr Runner, t task.Task, pIndex int, rc chan *result.Result) {
+func writeResult(sr Runner, t task.Task, pIndex int, rc chan *storge.Result) {
 	isEqual, executionTime, err := t.Runner(pIndex)
 	exp := ""
 	if err != nil {
 		exp = fmt.Sprintf("%v", err.Error())
 	}
-	res := &result.Result{
+	res := &storge.Result{
 		Stage: sr.GetStage().Name, Task: t.GetName(), IsSuccess: err == nil, ExecutionTime: executionTime,
 		Datetime: time.Now(), IsEqual: isEqual, CC: sr.GetCcCount(), Exception: exp,
 	}
 	rc <- res
 }
 
-func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan *result.Result) {
+func signalRunTicker(ctx context.Context, sr Runner, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	// 启动计时器
 	ticker := time.NewTicker(1 * time.Second)
@@ -90,15 +91,13 @@ func signalRunner(sr Runner) error {
 		}
 	}()
 
-	results := make(chan *result.Result, 1000)
+	results := make(chan *storge.Result, 1000)
 	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(context.Background())
 	// 启动结果处理程序
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		rp.Process(ctx, results)
-	}()
+	})
 	// 定时关闭
 	wg.Add(1)
 	// 守护协程，监控程序进程
