@@ -1,4 +1,4 @@
-package runner
+package single
 
 import (
 	"context"
@@ -6,22 +6,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wtester/pkg/stage"
+	"github.com/wtester/pkg/runner"
 	"github.com/wtester/pkg/storge"
 )
 
-// SingleLoopRunner 定义轮次配置执行器
-type SingleLoopRunner struct {
-	Stage    *stage.Stage `json:"stage"`
+// LoopRunner 定义轮次配置执行器
+type LoopRunner struct {
+	runner.BaseRunner
+
 	DoneChan chan struct{}
-	ccCount  int // 当前并发个数
 	loop     int // 执行轮次记录器
 	lock     sync.Mutex
 	once     sync.Once // 添加 once
 }
 
 // 更新执行轮次
-func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
+func (sr *LoopRunner) updateLoop(ctx context.Context) bool {
 	sr.lock.Lock()
 	defer sr.lock.Unlock()
 	select {
@@ -40,29 +40,17 @@ func (sr *SingleLoopRunner) updateLoop(ctx context.Context) bool {
 }
 
 // Daemon 测试结束执行的操作
-func (sr *SingleLoopRunner) Daemon(cf context.CancelFunc, wg *sync.WaitGroup) {
-	defer wg.Done()
-	<-sr.DoneChan // 等待程序结束
-	cf()
+func (sr *LoopRunner) Daemon(ctx context.Context, cf context.CancelFunc) {
+	// defer wg.Done()
+	// <-sr.DoneChan // 等待程序结束
+	// cf()
 }
 
-func (sr *SingleLoopRunner) GetStage() *stage.Stage {
-	return sr.Stage
-}
-
-func (sr *SingleLoopRunner) GetCcCount() int {
-	return sr.ccCount
-}
-
-func (sr *SingleLoopRunner) PlusCcCount(count int) {
-	sr.ccCount += count
-}
-
-func (sr *SingleLoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
+func (sr *LoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	wg.Done()
 }
 
-func (sr *SingleLoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
+func (sr *LoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	// 设置随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -80,13 +68,14 @@ func (sr *SingleLoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup
 				continue
 			}
 			for j := 0; j < t.GetParamsLength(); j++ {
-				writeResult(sr, t, i, rc)
+				sr.WriteResult(t, i, rc)
+
 			}
 		}
 	}
 }
 
-func (sr *SingleLoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
+func (sr *LoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
 	defer wg.Done()
 	tasks := sr.Stage.GetTasks()
 	lTask := len(tasks)
@@ -98,7 +87,7 @@ func (sr *SingleLoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup,
 		for i := 0; i < lTask; i++ {
 			t := *tasks[i]
 			for j := 0; j < t.GetParamsLength(); j++ {
-				writeResult(sr, t, i, rc)
+				sr.WriteResult(t, i, rc)
 			}
 		}
 	}

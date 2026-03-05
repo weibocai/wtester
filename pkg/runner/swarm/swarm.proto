@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option go_package = "github.com/theforce/pkg/runner/swarm";
+
+service WTester {
+  // 子节点注册/下线/结束
+  rpc ActorRegister(RegisterRequest) returns (CommonResponse){}
+  rpc ActorStage(StageRequest) returns (CommonResponse){}
+  rpc DirectorStage(StageRequest) returns (CommonResponse){}
+  rpc ActorTerminate(TerminateRequest) returns (CommonResponse){}
+}
+
+enum StatementKind{
+  Register = 0; // 客户端注册
+  UpdateState = 1; // 通知客户端执行阶段状态
+  StartCoroutine = 3;
+  Loop = 4;
+  FbCoroutinesNumber = 5; // 反馈当前并发个数
+}
+
+enum ActorStatus {
+  WaitingOnline = 0;   // 未上线
+  Online = 1;          // 在线
+  Offline = 2;         // 下线
+  Abnormal = 3;        // 异常掉线
+}
+
+enum StageKind {
+  StartStage = 0; // 新阶段开始执行
+  FinishStage = 1; // 本阶段执行结束
+}
+
+enum Status{
+  Success = 0;
+  Fail = 1;
+}
+
+message RegisterRequest{
+  ActorStatus kind = 1;  // 请求类型：注册、掉线
+  string pod = 2;   // 子节点pod名称
+  optional string host = 3;  // 子节点连接串
+}
+
+message CommonResponse{
+  Status status = 1;  // 请求类型：注册、掉线
+}
+
+message StageRequest{
+  StatementKind kind = 1;  // 请求类型：注册、掉线
+  string pod = 2;   // 子节点pod名称
+  uint32 StageIndex = 3; // 当前执行阶段
+  optional uint32 coroutinesNumber = 4; // 启动线程的个数
+  optional uint32 loop = 5; // 执行的个数
+  optional StageKind stageKind = 6; // 阶段消息类型
+}
+
+message TerminateRequest{
+
+}
