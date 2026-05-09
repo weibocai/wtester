@@ -32,6 +32,7 @@ type HttpRequest struct {
 	paramLength int                    `yaml:"-"`
 }
 
+// AddClientPool 注册到客户端池
 func (r *HttpRequest) AddClientPool() error {
 	if _, err := request.RegisterHttpClient(r.Url); err != nil {
 		return err
@@ -39,6 +40,7 @@ func (r *HttpRequest) AddClientPool() error {
 	return nil
 }
 
+// GetParamsLength 获取参数的长度
 func (r *HttpRequest) GetParamsLength() int {
 	return r.paramLength
 }
@@ -59,6 +61,7 @@ func (r *HttpRequest) getParam(index int) (map[string]any, error) {
 	return params, nil
 }
 
+// GetDescription 获取请求的描述信息，用于日志记录
 func (r *HttpRequest) GetDescription() string {
 	return r.Description
 }
@@ -80,6 +83,7 @@ func (r *HttpRequest) Doc() string {
 	return doc.String()
 }
 
+// GetWeight 权重
 func (r *HttpRequest) GetWeight() int {
 	if r.Weight > 0 {
 		return r.Weight
@@ -87,6 +91,7 @@ func (r *HttpRequest) GetWeight() int {
 	return 1
 }
 
+// Init 初始化
 func (r *HttpRequest) Init() error {
 	length := 1
 	isInit := false

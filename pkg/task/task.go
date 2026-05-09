@@ -9,10 +9,10 @@ type Task interface {
 	AddClientPool() error                  // 注册请求客户端
 	SetParam() error                       // 设置参数
 	SetResponse() error                    // 设置返回信息
-	GetName() string
-	GetWeight() int
-	GetParamsLength() int   // 任务参数的长度
-	GetDescription() string // 任务的描述信息
+	GetName() string                       // 请求信息
+	GetWeight() int                        // 权重
+	GetParamsLength() int                  // 任务参数的长度
+	GetDescription() string                // 任务的描述信息
 }
 
 type Factory func() Task

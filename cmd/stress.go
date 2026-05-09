@@ -105,6 +105,7 @@ func execute() error {
 		}
 	}
 
+	// 集群运行
 	if isSwarm {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
@@ -122,11 +123,14 @@ func execute() error {
 		} else {
 			go func() {
 				// 启动调试端口，通常是 6060
-				http.ListenAndServe("localhost:6061", nil)
+				if err = http.ListenAndServe("localhost:6061", nil); err != nil {
+					return
+				}
 			}()
 			swarm.ActorActuator(actorName, "127.0.0.1", "127.0.0.1:50052", 50053, sigCh, stageList)
 		}
 	} else {
+		// 单节点运行
 		single.Single(stageList)
 	}
 

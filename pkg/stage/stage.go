@@ -238,6 +238,10 @@ func (s *Stage) GetTotalWeight() int {
 	return s.totalWeight
 }
 
+func (s *Stage) GetLoop() int {
+	return s.Loop
+}
+
 // GetExecutionOrderType 获取执行顺序
 func (s *Stage) GetExecutionOrderType() ExecutionOrderType {
 	return s.executionOrderType

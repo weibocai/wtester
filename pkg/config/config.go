@@ -60,7 +60,7 @@ func (f *DbConfig) GetDatabase() string {
 	return f.Database
 }
 
-// GetDns 连接串
+// GetDsn 连接串
 func (f *DbConfig) GetDsn(kind string) (string, error) {
 	switch kind {
 	case "pg":

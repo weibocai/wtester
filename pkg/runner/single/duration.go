@@ -3,7 +3,6 @@ package single
 import (
 	"context"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/wtester/pkg/config"
@@ -13,11 +12,12 @@ import (
 	"github.com/wtester/pkg/task"
 )
 
-// DurationRunner 定义时间执行器
+// DurationRunner 单节点定义时间执行器
 type DurationRunner struct {
 	runner.BaseRunner
 }
 
+// Daemon 守护进程
 func (sr *DurationRunner) Daemon(ctx context.Context, cf context.CancelFunc) {
 	ticker := time.NewTicker(1 * time.Second)
 	config.Logger.Info("starting daemon")
@@ -41,8 +41,8 @@ Loop:
 	config.Logger.Info("stopping daemon")
 }
 
-func (sr *DurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	defer wg.Done()
+// RunnerRandom 随机任务执行
+func (sr *DurationRunner) RunnerRandom(ctx context.Context, rc chan *storge.Result) {
 	// 初始化随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tk := sr.Stage.GetTasks()
@@ -68,8 +68,8 @@ func (sr *DurationRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, 
 	}
 }
 
-func (sr *DurationRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	defer wg.Done()
+// RunnerWeight 权重任务执行
+func (sr *DurationRunner) RunnerWeight(ctx context.Context, rc chan *storge.Result) {
 	// 设置随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tasks := sr.Stage.GetTasks()
@@ -104,8 +104,8 @@ func (sr *DurationRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, 
 	}
 }
 
-func (sr *DurationRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	defer wg.Done()
+// RunnerOrder 顺序任务执行
+func (sr *DurationRunner) RunnerOrder(ctx context.Context, rc chan *storge.Result) {
 	tasks := sr.Stage.GetTasks()
 	index, pIndex, lTask := 0, 0, len(tasks)
 	for {

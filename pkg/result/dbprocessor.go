@@ -110,6 +110,7 @@ func (mp *DbProcessor) dealTd(statistic map[string]*storge.Statistic, td map[str
 	}
 }
 
+// Process 结果处理器主函数
 func (mp *DbProcessor) Process(ctx context.Context, results chan *storge.Result) {
 	ticker := time.NewTicker(mp.Sampling)
 	defer ticker.Stop()

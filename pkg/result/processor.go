@@ -15,10 +15,12 @@ type Processor interface {
 	Done() error                                              // 收尾
 }
 
+// ProcessorFactory 处理器
 type ProcessorFactory func(sampling time.Duration) Processor
 
 var processorFactories = map[constants.StorageType]ProcessorFactory{}
 
+// RegisterProcessor 处理器注册函数
 func RegisterProcessor(name constants.StorageType, factory ProcessorFactory) bool {
 	if _, ok := processorFactories[name]; ok {
 		return false
@@ -27,6 +29,7 @@ func RegisterProcessor(name constants.StorageType, factory ProcessorFactory) boo
 	return true
 }
 
+// GetProcessor 获取并且初始化处理器
 func GetProcessor(name constants.StorageType, sampling time.Duration) (Processor, error) {
 	if factory, ok := processorFactories[name]; ok {
 		return factory(sampling), nil

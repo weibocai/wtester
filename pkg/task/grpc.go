@@ -9,9 +9,9 @@ import (
 
 type GrpcRequest struct {
 	HttpRequest `yaml:",inline"`
-	Service     string `yaml:"service"`
-	Timeout     string `yaml:"timeout"`
-	MaxIdleConn int    `yaml:"maxIdleConn"`
+	Service     string `yaml:"service"`     // 服务信息
+	Timeout     string `yaml:"timeout"`     // 超时
+	MaxIdleConn int    `yaml:"maxIdleConn"` //
 }
 
 func (r *GrpcRequest) AddClientPool() error {

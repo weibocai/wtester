@@ -104,6 +104,7 @@ func Single(stages []*stage.Stage) {
 	randSource := time.Now().UnixNano()
 	for _, st := range stages {
 		var sr runner.Runner
+		// 分别执行轮次测试+随机测试
 		if st.GetExecutionOrderType() == stage.ExecutionOrderTypeLoop {
 			bar := progressbar.NewOptions(st.GetLoop(),
 				progressbar.OptionSetWriter(ansi.NewAnsiStdout()),

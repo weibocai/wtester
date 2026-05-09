@@ -46,12 +46,10 @@ func (sr *LoopRunner) Daemon(ctx context.Context, cf context.CancelFunc) {
 	// cf()
 }
 
-func (sr *LoopRunner) RunnerRandom(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	wg.Done()
+func (sr *LoopRunner) RunnerRandom(ctx context.Context, rc chan *storge.Result) {
 }
 
-func (sr *LoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	defer wg.Done()
+func (sr *LoopRunner) RunnerWeight(ctx context.Context, rc chan *storge.Result) {
 	// 设置随机种子
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tasks := sr.Stage.GetTasks()
@@ -75,8 +73,7 @@ func (sr *LoopRunner) RunnerWeight(ctx context.Context, wg *sync.WaitGroup, rc c
 	}
 }
 
-func (sr *LoopRunner) RunnerOrder(ctx context.Context, wg *sync.WaitGroup, rc chan *storge.Result) {
-	defer wg.Done()
+func (sr *LoopRunner) RunnerOrder(ctx context.Context, rc chan *storge.Result) {
 	tasks := sr.Stage.GetTasks()
 	lTask := len(tasks)
 	for {

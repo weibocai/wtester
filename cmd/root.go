@@ -35,6 +35,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&version, "v", "", "测试数据保存版本")
 }
 
+// initConfig 初始化配置
 func initConfig() {
 	viper.SetConfigType("yaml")
 	if configFile == "" {
